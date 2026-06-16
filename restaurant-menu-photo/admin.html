@@ -18,8 +18,12 @@
     .sound { background:var(--green); color:white; }
     .clear { background:white; color:var(--brand); border:1px solid var(--line); }
     .menu { background:var(--brand2); color:#211611; }
+    .panel-button { background:white; color:var(--ink); border:1px solid var(--line); }
     .notice { display:none; margin:14px 0 0; padding:12px; border-radius:8px; background:#dff6e8; color:#145c38; font-weight:950; border:1px solid #a9dfbd; }
     .notice.show { display:block; }
+    .utility-panels { display:grid; gap:12px; margin:12px 0 20px; }
+    .utility-panel { display:none; }
+    .utility-panel.open { display:grid; }
     .orders { display:grid; gap:12px; padding-bottom:28px; }
     .order { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:14px; box-shadow:0 10px 28px rgba(78,44,22,.08); }
     .top { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; }
@@ -49,6 +53,10 @@
     .menu-admin { background:white; border:1px solid var(--line); border-radius:8px; padding:14px; margin:18px 0 6px; display:grid; gap:10px; }
     .menu-form { display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr)); gap:8px; }
     .menu-form input, .menu-form select { min-height:40px; border:1px solid var(--line); border-radius:7px; padding:0 12px; font:inherit; }
+    .menu-form label { display:grid; gap:5px; font-weight:850; color:var(--muted); }
+    .menu-form input[type="file"] { padding:8px 10px; background:white; }
+    .image-preview { display:none; width:100%; min-height:96px; border:1px dashed var(--line); border-radius:8px; background:center/cover no-repeat #fffaf2; }
+    .image-preview.show { display:block; }
     .menu-actions { display:flex; gap:8px; flex-wrap:wrap; }
     .menu-actions button { background:var(--brand); color:white; }
     .menu-list { display:grid; gap:8px; max-height:360px; overflow:auto; }
@@ -71,42 +79,63 @@
       <button class="sound" id="sound">Səsi aktiv et</button>
       <button class="refresh" id="refresh">Yenilə</button>
       <button class="clear" id="clear">Sifarişləri təmizlə</button>
+      <button class="panel-button" id="toggleMenuPanel">Menyu idarə et</button>
+      <button class="panel-button" id="toggleSalesPanel">Günlük alver</button>
       <a class="menu" href="index.html">Menyuya qayıt</a>
     </div>
     <div class="notice" id="notice">Yeni sifariş gəldi</div>
-    <section class="sales-panel">
-      <strong>Günlük alver</strong>
-      <div class="sales-form">
-        <input id="salesPassword" type="password" placeholder="Şifrə">
-        <button id="showSales">Günlük alveri göstər</button>
-      </div>
-      <div class="sales-error" id="salesError"></div>
-      <div class="sales-total" id="salesTotal"></div>
-    </section>
-    <section class="menu-admin">
-      <strong>Menyunu idarə et</strong>
-      <div class="sales-form">
-        <input id="menuPassword" type="password" placeholder="Şifrə">
-        <button id="loadMenuAdmin">Menyunu aç</button>
-      </div>
-      <div class="sales-error" id="menuError"></div>
-      <div id="menuEditor" class="hide">
-        <input id="menuId" type="hidden">
-        <div class="menu-form">
-          <input id="menuName" placeholder="Yeməyin adı">
-          <input id="menuCategory" placeholder="Kateqoriya">
-          <input id="menuPrice" type="number" step="0.01" placeholder="Qiymət">
-          <input id="menuDesc" placeholder="Qısa təsvir">
-          <input id="menuImg" placeholder="Şəkil linki">
-          <label><input id="menuActive" type="checkbox" checked> Menyuda görünsün</label>
+    <div class="utility-panels">
+      <section class="sales-panel utility-panel" id="salesPanel">
+        <strong>Günlük alver</strong>
+        <div class="sales-form">
+          <input id="salesPassword" type="password" placeholder="Şifrə">
+          <button id="showSales">Günlük alveri göstər</button>
         </div>
-        <div class="menu-actions">
-          <button id="saveMenuItem">Yadda saxla</button>
-          <button id="newMenuItem">Yeni yemək</button>
+        <div class="sales-error" id="salesError"></div>
+        <div class="sales-total" id="salesTotal"></div>
+      </section>
+      <section class="menu-admin utility-panel" id="menuPanel">
+        <strong>Menyunu idarə et</strong>
+        <div class="sales-form">
+          <input id="menuPassword" type="password" placeholder="Şifrə">
+          <button id="loadMenuAdmin">Menyunu aç</button>
         </div>
-        <div class="menu-list" id="menuItems"></div>
-      </div>
-    </section>
+        <div class="sales-error" id="menuError"></div>
+        <div id="menuEditor" class="hide">
+          <input id="menuId" type="hidden">
+          <div class="menu-form">
+            <label>Yeməyin adı
+              <input id="menuName" placeholder="Məsələn: Lülə kabab">
+            </label>
+            <label>Kateqoriya
+              <select id="menuCategory"></select>
+            </label>
+            <label>Yeni kateqoriya
+              <input id="menuCategoryNew" placeholder="Lazımdırsa yeni kateqoriya yaz">
+            </label>
+            <label>Qiymət
+              <input id="menuPrice" type="number" step="0.01" placeholder="Qiymət">
+            </label>
+            <label>Qısa təsvir
+              <input id="menuDesc" placeholder="Qısa təsvir">
+            </label>
+            <label>Şəkil linki
+              <input id="menuImg" placeholder="Şəkil linki">
+            </label>
+            <label>Telefondan şəkil seç
+              <input id="menuPhoto" type="file" accept="image/*">
+            </label>
+            <div class="image-preview" id="menuImagePreview"></div>
+            <label><input id="menuActive" type="checkbox" checked> Menyuda görünsün</label>
+          </div>
+          <div class="menu-actions">
+            <button id="saveMenuItem">Yadda saxla</button>
+            <button id="newMenuItem">Yeni yemək</button>
+          </div>
+          <div class="menu-list" id="menuItems"></div>
+        </div>
+      </section>
+    </div>
     <h2 class="bill-title">Masa hesabları</h2>
     <div class="bills" id="bills"></div>
     <h2 class="bill-title">Sifarişlər</h2>
@@ -160,14 +189,44 @@
     function menuPassword(){
       return document.getElementById("menuPassword").value.trim();
     }
+    function togglePanel(id){
+      const panel = document.getElementById(id);
+      panel.classList.toggle("open");
+    }
+    function menuCategories(){
+      return [...new Set(adminMenuItems.map(item => item.category).filter(Boolean))].sort((a, b) => a.localeCompare(b, "az"));
+    }
+    function renderCategoryOptions(selected = ""){
+      const select = document.getElementById("menuCategory");
+      const categories = menuCategories();
+      select.innerHTML = categories.map(category => `<option value="${category}">${category}</option>`).join("");
+      if(selected && !categories.includes(selected)){
+        select.insertAdjacentHTML("afterbegin", `<option value="${selected}">${selected}</option>`);
+      }
+      select.value = selected || categories[0] || "";
+    }
+    function updateImagePreview(){
+      const value = document.getElementById("menuImg").value.trim();
+      const preview = document.getElementById("menuImagePreview");
+      if(value){
+        preview.style.backgroundImage = `url("${value}")`;
+        preview.classList.add("show");
+      } else {
+        preview.style.backgroundImage = "";
+        preview.classList.remove("show");
+      }
+    }
     function clearMenuForm(){
       document.getElementById("menuId").value = "";
       document.getElementById("menuName").value = "";
-      document.getElementById("menuCategory").value = "";
+      renderCategoryOptions();
+      document.getElementById("menuCategoryNew").value = "";
       document.getElementById("menuPrice").value = "";
       document.getElementById("menuDesc").value = "";
       document.getElementById("menuImg").value = "";
+      document.getElementById("menuPhoto").value = "";
       document.getElementById("menuActive").checked = true;
+      updateImagePreview();
     }
     function renderMenuAdmin(){
       const list = document.getElementById("menuItems");
@@ -190,6 +249,7 @@
         await api(`/api/sales?password=${encodeURIComponent(menuPassword())}`);
         adminMenuItems = await api("/api/menu");
         document.getElementById("menuEditor").classList.remove("hide");
+        renderCategoryOptions();
         clearMenuForm();
         renderMenuAdmin();
       } catch(e) {
@@ -201,20 +261,24 @@
       if(!item) return;
       document.getElementById("menuId").value = item.id;
       document.getElementById("menuName").value = item.name || "";
-      document.getElementById("menuCategory").value = item.category || "";
+      renderCategoryOptions(item.category || "");
+      document.getElementById("menuCategoryNew").value = "";
       document.getElementById("menuPrice").value = item.price || 0;
       document.getElementById("menuDesc").value = item.desc || "";
       document.getElementById("menuImg").value = item.img || "";
+      document.getElementById("menuPhoto").value = "";
       document.getElementById("menuActive").checked = item.active !== false;
+      updateImagePreview();
       document.getElementById("menuName").focus();
     }
     async function saveMenuItem(){
       menuError.textContent = "";
       const id = document.getElementById("menuId").value;
+      const newCategory = document.getElementById("menuCategoryNew").value.trim();
       const payload = {
         password: menuPassword(),
         name: document.getElementById("menuName").value.trim(),
-        category: document.getElementById("menuCategory").value.trim(),
+        category: newCategory || document.getElementById("menuCategory").value.trim(),
         price: Number(document.getElementById("menuPrice").value || 0),
         desc: document.getElementById("menuDesc").value.trim(),
         img: document.getElementById("menuImg").value.trim(),
@@ -229,6 +293,7 @@
         const method = id ? "PATCH" : "POST";
         await api(path, {method, headers:{"Content-Type":"application/json"}, body:JSON.stringify(payload)});
         adminMenuItems = await api("/api/menu");
+        renderCategoryOptions(payload.category);
         clearMenuForm();
         renderMenuAdmin();
         menuError.textContent = "Menyu yeniləndi.";
@@ -245,6 +310,15 @@
       } catch(e) {
         menuError.textContent = "Silinmədi. Şifrəni yoxla.";
       }
+    }
+    function loadSelectedPhoto(file){
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        document.getElementById("menuImg").value = reader.result;
+        updateImagePreview();
+      };
+      reader.readAsDataURL(file);
     }
     function receiptHtml(bill){
       const createdAt = new Date().toLocaleString("az-AZ", {
@@ -443,10 +517,14 @@
     };
     document.getElementById("refresh").onclick = render;
     document.getElementById("clear").onclick = async () => { await api("/api/orders", {method:"DELETE"}); render(); };
+    document.getElementById("toggleMenuPanel").onclick = () => togglePanel("menuPanel");
+    document.getElementById("toggleSalesPanel").onclick = () => togglePanel("salesPanel");
     document.getElementById("showSales").onclick = loadSales;
     document.getElementById("loadMenuAdmin").onclick = loadMenuAdmin;
     document.getElementById("saveMenuItem").onclick = saveMenuItem;
     document.getElementById("newMenuItem").onclick = clearMenuForm;
+    document.getElementById("menuImg").addEventListener("input", updateImagePreview);
+    document.getElementById("menuPhoto").addEventListener("change", event => loadSelectedPhoto(event.target.files[0]));
     render();
     setInterval(render, 2500);
   </script>
