@@ -1,0 +1,828 @@
+<!doctype html>
+<html lang="az">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AquaLux Santexnika</title>
+  <meta name="description" content="AquaLux Santexnika - kranlar, duş sistemləri, unitazlar, borular və hamam aksesuarlarının kataloqu.">
+  <meta property="og:title" content="AquaLux Santexnika">
+  <meta property="og:description" content="Santexnik avadanlıqlar kataloqu - qiymətlər, kateqoriyalar və WhatsApp sifariş.">
+  <meta property="og:type" content="website">
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #eef4f5;
+      --ink: #102126;
+      --muted: #607179;
+      --line: #d7e2e6;
+      --card: #ffffff;
+      --brand: #047c8a;
+      --brand-dark: #064d57;
+      --accent: #c89432;
+      --soft: #e8f5f6;
+      --shadow: 0 18px 48px rgba(17, 44, 53, .10);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, Arial, Helvetica, sans-serif;
+      background:
+        linear-gradient(180deg, #f7fbfb 0, var(--bg) 420px),
+        var(--bg);
+      color: var(--ink);
+    }
+
+    header {
+      background:
+        linear-gradient(120deg, rgba(3, 91, 103, .96), rgba(10, 46, 58, .95)),
+        url("https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=1600&q=75");
+      background-size: cover;
+      background-position: center;
+      color: #fff;
+      border-bottom: 1px solid rgba(255,255,255,.18);
+    }
+
+    .wrap {
+      width: min(1160px, calc(100% - 28px));
+      margin: 0 auto;
+    }
+
+    .hero {
+      min-height: 325px;
+      display: grid;
+      align-items: center;
+      gap: 22px;
+      padding: 42px 0 34px;
+    }
+
+    .brandline {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      opacity: .92;
+    }
+
+    .brandmark {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      background: #fff;
+      color: var(--brand-dark);
+      font-weight: 900;
+      box-shadow: 0 8px 22px rgba(0, 0, 0, .20);
+    }
+
+    h1 {
+      margin: 0;
+      max-width: 820px;
+      font-size: clamp(34px, 6vw, 64px);
+      line-height: 1.02;
+      letter-spacing: 0;
+      text-shadow: 0 4px 26px rgba(0, 0, 0, .22);
+    }
+
+    .lead {
+      margin: 0;
+      max-width: 760px;
+      color: rgba(255,255,255,.88);
+      font-size: 17px;
+      line-height: 1.5;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .chip {
+      border: 1px solid rgba(255,255,255,.26);
+      background: rgba(255,255,255,.12);
+      border-radius: 8px;
+      padding: 8px 11px;
+      font-size: 14px;
+      backdrop-filter: blur(8px);
+    }
+
+    main { padding: 26px 0 48px; }
+
+    .catalog-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      margin: -42px 0 18px;
+      padding: 14px;
+      border: 1px solid rgba(255,255,255,.74);
+      border-radius: 8px;
+      background: rgba(255,255,255,.94);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    .catalog-tools {
+      display: grid;
+      gap: 9px;
+      min-width: min(100%, 650px);
+    }
+
+    .catalog-title {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--brand-dark);
+    }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .tab {
+      min-height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #fff;
+      color: var(--brand-dark);
+      padding: 0 12px;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: background .16s ease, border-color .16s ease, color .16s ease;
+    }
+
+    .tab[aria-pressed="true"] {
+      border-color: var(--brand);
+      background: var(--brand);
+      color: #fff;
+    }
+
+    .summary {
+      color: var(--muted);
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    .search {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #fff;
+      color: var(--ink);
+      padding: 0 13px;
+      font: inherit;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .search:focus {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 3px rgba(4, 124, 138, .13);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 18px;
+    }
+
+    .product {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 12px 30px rgba(18,36,43,.07);
+      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    }
+
+    .product:hover {
+      transform: translateY(-3px);
+      border-color: #b8cbd1;
+      box-shadow: var(--shadow);
+    }
+
+    .visual {
+      height: 240px;
+      flex: 0 0 240px;
+      padding: 18px;
+      display: block;
+      border: 0;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      background:
+        linear-gradient(145deg, #ffffff 0, #eef6f7 100%);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .photo-frame {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      border-radius: 8px;
+      background: #fff;
+      overflow: hidden;
+      box-shadow: inset 0 0 0 1px rgba(215, 226, 230, .75);
+    }
+
+    .visual img {
+      position: absolute;
+      inset: 12px;
+      width: calc(100% - 24px);
+      height: calc(100% - 24px);
+      max-width: none;
+      max-height: none;
+      object-fit: contain;
+      object-position: center;
+      border-radius: 6px;
+      display: block;
+    }
+
+    .photo-count {
+      position: absolute;
+      right: 10px;
+      bottom: 10px;
+      border-radius: 999px;
+      background: rgba(6, 77, 87, .9);
+      color: #fff;
+      padding: 4px 8px;
+      font-size: 12px;
+      font-weight: 900;
+      z-index: 2;
+    }
+
+    .thumbs {
+      display: flex;
+      gap: 6px;
+      margin-top: -4px;
+      min-height: 28px;
+      overflow: hidden;
+    }
+
+    .thumb {
+      width: 28px;
+      height: 28px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fff;
+      object-fit: contain;
+      padding: 2px;
+    }
+
+    .body {
+      padding: 16px;
+      display: grid;
+      grid-template-rows: auto auto 1fr auto auto;
+      gap: 11px;
+      flex: 1;
+      position: relative;
+      z-index: 1;
+      background: #fff;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 17px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    .category-pill {
+      width: fit-content;
+      border-radius: 999px;
+      background: var(--soft);
+      color: var(--brand-dark);
+      padding: 5px 9px;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .spec {
+      min-height: 40px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.42;
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 12px;
+      border-top: 1px solid var(--line);
+      padding-top: 11px;
+    }
+
+    .label {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .price {
+      color: var(--brand-dark);
+      font-size: 24px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .price-box {
+      display: grid;
+      justify-items: end;
+      gap: 3px;
+    }
+
+    .old-price {
+      color: #8a9aa1;
+      font-size: 14px;
+      font-weight: 800;
+      text-decoration: line-through;
+      white-space: nowrap;
+    }
+
+    .discount-badge {
+      width: fit-content;
+      border-radius: 999px;
+      background: #fff1f0;
+      color: #b42318;
+      padding: 3px 7px;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .order {
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 7px;
+      background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+      color: #fff;
+      text-decoration: none;
+      font-weight: 800;
+      box-shadow: 0 10px 20px rgba(4, 124, 138, .18);
+    }
+
+    .order:hover { filter: brightness(.96); }
+
+    .foot {
+      margin-top: 20px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+      text-align: center;
+    }
+
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(8, 25, 31, .88);
+      z-index: 20;
+      padding: 18px;
+    }
+
+    .lightbox.open { display: flex; }
+
+    .lightbox-panel {
+      width: min(980px, 100%);
+      height: min(720px, 82vh);
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 10px;
+    }
+
+    .lightbox-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      color: #fff;
+      font-weight: 900;
+    }
+
+    .lightbox-close,
+    .lightbox-nav {
+      border: 0;
+      border-radius: 7px;
+      background: rgba(255,255,255,.16);
+      color: #fff;
+      font: inherit;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .lightbox-close {
+      width: 42px;
+      height: 42px;
+      font-size: 24px;
+      line-height: 1;
+    }
+
+    .lightbox-stage {
+      position: relative;
+      display: grid;
+      place-items: center;
+      min-height: 0;
+      border-radius: 8px;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .lightbox-stage img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .lightbox-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 44px;
+      height: 54px;
+      background: rgba(6, 77, 87, .82);
+      font-size: 28px;
+    }
+
+    .lightbox-prev { left: 10px; }
+    .lightbox-next { right: 10px; }
+
+    .lightbox-bottom {
+      color: rgba(255,255,255,.9);
+      text-align: center;
+      font-weight: 800;
+    }
+
+    @media (max-width: 620px) {
+      .wrap { width: min(100% - 20px, 1160px); }
+      .hero { min-height: 300px; padding-top: 32px; }
+      .catalog-head { align-items: flex-start; flex-direction: column; margin-top: -34px; }
+      .catalog-tools { width: 100%; }
+      .tabs { justify-content: flex-start; width: 100%; }
+      .tab { flex: 1 1 auto; }
+      .summary { white-space: normal; }
+      .grid { grid-template-columns: 1fr; gap: 14px; }
+      .visual { height: 230px; flex-basis: 230px; }
+      .lightbox { padding: 10px; }
+      .lightbox-panel { height: 86vh; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap hero">
+      <div class="brandline"><span class="brandmark">A</span> AquaLux Santexnika</div>
+      <div>
+        <h1>Santexnik avadanlıqlar kataloqu</h1>
+        <p class="lead">Hamam, mətbəx və təmir işləri üçün seçilmiş məhsullar. Qiymətə bax və WhatsApp üzərindən rahat sifariş et.</p>
+      </div>
+      <div class="chips">
+        <span class="chip">WhatsApp sifariş</span>
+        <span class="chip">Qiymətlər birbaşa göstərilir</span>
+        <span class="chip">5 kateqoriya</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="catalog-head">
+      <div>
+        <p class="catalog-title">Məhsullar</p>
+        <div class="summary" id="countLabel"></div>
+      </div>
+      <div class="catalog-tools">
+        <input class="search" id="searchInput" type="search" placeholder="Məhsul axtar..." autocomplete="off">
+        <div class="tabs" id="tabs" aria-label="Kateqoriyalar"></div>
+      </div>
+    </section>
+    <section class="grid" id="products"></section>
+    <div class="foot">Sifariş düyməsinə basanda WhatsApp-da məhsulun adı, kateqoriyası və qiyməti hazır mesaj kimi açılır.</div>
+  </main>
+
+  <div class="lightbox" id="lightbox" aria-hidden="true">
+    <div class="lightbox-panel">
+      <div class="lightbox-top">
+        <span id="lightboxTitle">Məhsul şəkli</span>
+        <button class="lightbox-close" id="lightboxClose" type="button" aria-label="Bağla">×</button>
+      </div>
+      <div class="lightbox-stage" id="lightboxStage">
+        <button class="lightbox-nav lightbox-prev" id="lightboxPrev" type="button" aria-label="Əvvəlki şəkil">‹</button>
+        <img id="lightboxImage" src="" alt="">
+        <button class="lightbox-nav lightbox-next" id="lightboxNext" type="button" aria-label="Növbəti şəkil">›</button>
+      </div>
+      <div class="lightbox-bottom" id="lightboxCounter">1 / 1</div>
+    </div>
+  </div>
+
+  <script>
+    const phone = "994552201202";
+    const categories = [
+      { id: "faucets", name: "Kranlar" },
+      { id: "showers", name: "Duş sistemləri" },
+      { id: "ceramic", name: "Unitaz və lavabo" },
+      { id: "pipes", name: "Boru və fitinq" },
+      { id: "accessories", name: "Aksesuarlar" }
+    ];
+
+    let products = [
+      { category: "faucets", name: "Mətbəx üçün mikser kran", spec: "Xrom korpus, fırlanan başlıq, isti-soyuq su", price: 58, type: "faucet" },
+      { category: "faucets", name: "Lavabo kranı", spec: "Minimal dizayn, suya qənaətli aerator", price: 42, type: "faucet" },
+      { category: "faucets", name: "Divar tipli kran", spec: "Hamam və texniki otaqlar üçün davamlı model", price: 36, type: "faucet" },
+      { category: "faucets", name: "Premium qara mikser", spec: "Mat qara rəng, modern hamam dizaynı üçün", price: 79, type: "faucet" },
+
+      { category: "showers", name: "Yağış effektli duş sistemi", spec: "Üst başlıq, əl duşu və qarışdırıcı dəst", price: 145, type: "shower" },
+      { category: "showers", name: "Əl duşu komplekti", spec: "Şlanq, tutacaq və 3 rejimli duş başlığı", price: 32, type: "shower" },
+      { category: "showers", name: "Gizli montaj duş sistemi", spec: "Divar içi mexanizm, sadə və təmiz görünüş", price: 188, type: "shower" },
+      { category: "showers", name: "Termostatik duş paneli", spec: "Temperatur sabitləmə, ailə istifadəsi üçün", price: 214, type: "shower" },
+
+      { category: "ceramic", name: "Asma unitaz komplekti", spec: "Yumşaq qapanan qapaq, divar montajlı", price: 210, type: "toilet" },
+      { category: "ceramic", name: "Keramika lavabo", spec: "Parlaq ağ keramika, 55 sm ölçü", price: 86, type: "sink" },
+      { category: "ceramic", name: "Monoblok unitaz", spec: "İki rejimli su buraxma sistemi", price: 169, type: "toilet" },
+      { category: "ceramic", name: "Üstdən qoyulan lavabo", spec: "Dairəvi forma, modern dolablar üçün", price: 74, type: "sink" },
+
+      { category: "pipes", name: "PPR boru 20 mm", spec: "İsti və soyuq su xətləri üçün", price: 3.8, type: "pipe" },
+      { category: "pipes", name: "PPR dirsək 90 dərəcə", spec: "20 mm boru sistemləri üçün fitinq", price: 0.8, type: "pipe" },
+      { category: "pipes", name: "Kollektor 4 çıxışlı", spec: "İstilik və su paylama sistemləri üçün", price: 28, type: "pipe" },
+      { category: "pipes", name: "Fleksible su şlanqı", spec: "Paslanmaz örgülü, 60 sm uzunluq", price: 5.5, type: "pipe" },
+
+      { category: "accessories", name: "Lavabo üçün sifon", spec: "Qoxu qaytarmayan sistem, asan montaj", price: 12, type: "accessory" },
+      { category: "accessories", name: "Hamam aksesuar dəsti", spec: "Sabunluq, diş fırçası qabı və asqılar", price: 39, type: "accessory" },
+      { category: "accessories", name: "Dəsmal asqısı", spec: "Xrom rəngli, divar montajlı", price: 18, type: "accessory" },
+      { category: "accessories", name: "Su filtri korpusu", spec: "Mətbəx və giriş su xətti üçün uyğun", price: 46, type: "accessory" }
+    ];
+
+    const productPhotos = {
+      "Mətbəx üçün mikser kran": "https://tse1.mm.bing.net/th?q=kitchen%20mixer%20faucet%20product%20photo%20chrome&w=640&h=480&c=0&rs=1&p=0&o=5&pid=1.7",
+      "Lavabo kranı": "https://tse1.mm.bing.net/th?q=bathroom%20sink%20faucet%20product%20photo%20chrome&w=640&h=480&c=0&rs=1&p=0&o=5&pid=1.7",
+      "Divar tipli kran": "https://tse1.mm.bing.net/th?q=wall%20mounted%20faucet%20product%20photo%20chrome&w=640&h=480&c=0&rs=1&p=0&o=5&pid=1.7",
+      "Premium qara mikser": "https://tse1.mm.bing.net/th?q=matte%20black%20mixer%20faucet%20product%20photo&w=640&h=480&c=0&rs=1&p=0&o=5&pid=1.7",
+      "Yağış effektli duş sistemi": "https://tse1.mm.bing.net/th?q=rain%20shower%20system%20product%20photo%20chrome&w=640&h=480&c=0&rs=1&p=0&o=5&pid=1.7",
+      "Əl duşu komplekti": "https://tse1.mm.bing.net/th?q=hand%20shower%20set%20product%20photo%20chrome&w=640&h=480&c=0&rs=1&p=0&o=5&pid=1.7",
+      "Gizli montaj duş sistemi": "https://tse1.mm.bing.net/th?q=concealed%20shower%20mixer%20set%20product%20photo&w=640&h=480&c=0&rs=1&p=0&o=5&pid=1.7",
+      "Termostatik duş paneli": "https://tse1.mm.bing.net/th?q=thermostatic%20shower%20panel%20product%20photo&w=640&h=480&c=0&rs=1&p=0&o=5&pid=1.7",
+      "Asma unitaz komplekti": "https://tse1.mm.bing.net/th?q=wall%20hung%20toilet%20set%20product%20photo&w=640&h=480&c=0&rs=1&p=0&o=5&pid=1.7",
+      "Keramika lavabo": "https://tse1.mm.bing.net/th?q=ceramic%20wash%20basin%20product%20photo&w=640&h=480&c=0&rs=1&p=0&o=5&pid=1.7",
+      "Monoblok unitaz": "https://tse1.mm.bing.net/th?q=one%20piece%20toilet%20product%20photo%20white&w=640&h=480&c=0&rs=1&p=0&o=5&pid=1.7",
+      "Üstdən qoyulan lavabo": "https://tse1.mm.bing.net/th?q=countertop%20wash%20basin%20product%20photo%20white&w=640&h=480&c=0&rs=1&p=0&o=5&pid=1.7",
+      "PPR boru 20 mm": "https://tse1.mm.bing.net/th?q=PPR%20pipe%2020mm%20product%20photo&w=640&h=480&c=0&rs=1&p=0&o=5&pid=1.7",
+      "PPR dirsək 90 dərəcə": "https://tse1.mm.bing.net/th?q=PPR%20elbow%20fitting%2090%20degree%20product%20photo&w=640&h=480&c=0&rs=1&p=0&o=5&pid=1.7",
+      "Kollektor 4 çıxışlı": "https://tse1.mm.bing.net/th?q=4%20way%20water%20manifold%20plumbing%20product%20photo&w=640&h=480&c=0&rs=1&p=0&o=5&pid=1.7",
+      "Fleksible su şlanqı": "https://tse1.mm.bing.net/th?q=flexible%20water%20hose%20braided%20product%20photo&w=640&h=480&c=0&rs=1&p=0&o=5&pid=1.7",
+      "Lavabo üçün sifon": "https://tse1.mm.bing.net/th?q=sink%20siphon%20bottle%20trap%20product%20photo&w=640&h=480&c=0&rs=1&p=0&o=5&pid=1.7",
+      "Hamam aksesuar dəsti": "https://tse1.mm.bing.net/th?q=bathroom%20accessories%20set%20product%20photo&w=640&h=480&c=0&rs=1&p=0&o=5&pid=1.7",
+      "Dəsmal asqısı": "https://tse1.mm.bing.net/th?q=bathroom%20towel%20rack%20chrome%20product%20photo&w=640&h=480&c=0&rs=1&p=0&o=5&pid=1.7",
+      "Su filtri korpusu": "https://tse1.mm.bing.net/th?q=water%20filter%20housing%20product%20photo&w=640&h=480&c=0&rs=1&p=0&o=5&pid=1.7"
+    };
+
+    const colors = {
+      faucet: "#0c8599",
+      shower: "#2878bd",
+      toilet: "#5a6f7c",
+      sink: "#5a6f7c",
+      pipe: "#d48b2a",
+      accessory: "#178f6b"
+    };
+
+    function money(value) {
+      const number = Number(value || 0);
+      return number.toFixed(number % 1 ? 2 : 0) + " AZN";
+    }
+
+    function priceHtml(product) {
+      const oldPrice = Number(product.oldPrice || 0);
+      const price = Number(product.price || 0);
+      if (oldPrice > price && price > 0) {
+        const discount = Math.round(((oldPrice - price) / oldPrice) * 100);
+        return `
+          <span class="price-box">
+            <span class="old-price">${money(oldPrice)}</span>
+            <span class="price">${money(price)}</span>
+            <span class="discount-badge">-${discount}% endirim</span>
+          </span>
+        `;
+      }
+      return `<span class="price">${money(price)}</span>`;
+    }
+
+    function productImages(product) {
+      const images = Array.isArray(product.images)
+        ? product.images.map((image) => String(image || "").trim()).filter(Boolean)
+        : [];
+      if (product.image && !images.includes(product.image)) images.unshift(product.image);
+      if (!images.length && productPhotos[product.name]) images.push(productPhotos[product.name]);
+      return images.slice(0, 6);
+    }
+
+    function productImage(product) {
+      return productImages(product)[0] || "";
+    }
+
+    function productImageLink(product) {
+      return productImage(product);
+    }
+
+    function orderLink(product) {
+      const category = (categories.find((item) => item.id === product.category) || categories[0]).name;
+      const text = `Salam, bu məhsulu sifariş etmək istəyirəm: ${product.name}. Kateqoriya: ${category}. Qiymət: ${money(product.price)}. Şəkil: ${productImageLink(product)}`;
+      return `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+      }[char]));
+    }
+
+    const productsEl = document.getElementById("products");
+    const tabsEl = document.getElementById("tabs");
+    const searchInput = document.getElementById("searchInput");
+    const countLabel = document.getElementById("countLabel");
+    const lightboxEl = document.getElementById("lightbox");
+    const lightboxImage = document.getElementById("lightboxImage");
+    const lightboxTitle = document.getElementById("lightboxTitle");
+    const lightboxCounter = document.getElementById("lightboxCounter");
+    const lightboxClose = document.getElementById("lightboxClose");
+    const lightboxPrev = document.getElementById("lightboxPrev");
+    const lightboxNext = document.getElementById("lightboxNext");
+    const lightboxStage = document.getElementById("lightboxStage");
+    let activeCategory = "all";
+    let galleryImages = [];
+    let galleryIndex = 0;
+    let galleryTitle = "";
+    let touchStartX = 0;
+
+    function renderTabs() {
+      const items = [{ id: "all", name: "Hamısı" }, ...categories];
+      tabsEl.innerHTML = items.map((category) => `
+        <button class="tab" type="button" data-category="${category.id}" aria-pressed="${category.id === activeCategory}">
+          ${category.name}
+        </button>
+      `).join("");
+    }
+
+    function renderProducts() {
+      const query = searchInput.value.trim().toLowerCase();
+      const categoryProducts = activeCategory === "all"
+        ? products
+        : products.filter((product) => product.category === activeCategory);
+      const visibleProducts = query
+        ? categoryProducts.filter((product) => {
+          const category = (categories.find((item) => item.id === product.category) || categories[0]).name;
+          return `${product.name} ${product.spec} ${category}`.toLowerCase().includes(query);
+        })
+        : categoryProducts;
+
+      const activeName = activeCategory === "all"
+        ? "Bütün kateqoriyalar"
+        : (categories.find((category) => category.id === activeCategory) || categories[0]).name;
+
+      countLabel.textContent = `${activeName} - ${visibleProducts.length} məhsul`;
+      productsEl.innerHTML = visibleProducts.length ? visibleProducts.map((product) => {
+        const category = categories.find((item) => item.id === product.category) || categories[0];
+        const index = products.findIndex((item) => item.name === product.name);
+        const images = productImages(product);
+        const thumbs = images.length > 1 ? `
+          <div class="thumbs">
+            ${images.slice(0, 6).map((image) => `<img class="thumb" src="${escapeHtml(image)}" alt="">`).join("")}
+          </div>
+        ` : "";
+        return `
+          <article class="product">
+            <button class="visual" type="button" data-gallery-index="${index}" aria-label="${escapeHtml(product.name)} şəkillərinə bax">
+              <div class="photo-frame">
+                <img src="${escapeHtml(productImage(product))}" alt="${escapeHtml(product.name)}" loading="lazy">
+                ${images.length > 1 ? `<span class="photo-count">${images.length} şəkil</span>` : ""}
+              </div>
+            </button>
+            <div class="body">
+              <span class="category-pill">${escapeHtml(category.name)}</span>
+              <h2>${escapeHtml(product.name)}</h2>
+              ${thumbs}
+              <p class="spec">${escapeHtml(product.spec)}</p>
+              <div class="row">
+                <span class="label">Qiymət</span>
+                ${priceHtml(product)}
+              </div>
+              <a class="order" href="${escapeHtml(orderLink(product))}">Sifariş et</a>
+            </div>
+          </article>
+        `;
+      }).join("") : `<p class="foot">Bu axtarışa uyğun məhsul tapılmadı.</p>`;
+    }
+
+    function updateLightbox() {
+      const total = galleryImages.length || 1;
+      galleryIndex = (galleryIndex + total) % total;
+      lightboxImage.src = galleryImages[galleryIndex] || "";
+      lightboxImage.alt = galleryTitle;
+      lightboxTitle.textContent = galleryTitle;
+      lightboxCounter.textContent = `${galleryIndex + 1} / ${total}`;
+      const hasMany = total > 1;
+      lightboxPrev.hidden = !hasMany;
+      lightboxNext.hidden = !hasMany;
+    }
+
+    function openGallery(product, startIndex = 0) {
+      galleryImages = productImages(product);
+      if (!galleryImages.length) return;
+      galleryIndex = startIndex;
+      galleryTitle = product.name || "Məhsul şəkli";
+      updateLightbox();
+      lightboxEl.classList.add("open");
+      lightboxEl.setAttribute("aria-hidden", "false");
+    }
+
+    function closeGallery() {
+      lightboxEl.classList.remove("open");
+      lightboxEl.setAttribute("aria-hidden", "true");
+      lightboxImage.src = "";
+    }
+
+    function nextGallery(direction) {
+      if (!galleryImages.length) return;
+      galleryIndex += direction;
+      updateLightbox();
+    }
+
+    function render() {
+      renderTabs();
+      renderProducts();
+    }
+
+    tabsEl.addEventListener("click", (event) => {
+      const button = event.target.closest(".tab");
+      if (!button) return;
+      activeCategory = button.dataset.category;
+      render();
+    });
+
+    searchInput.addEventListener("input", renderProducts);
+
+    productsEl.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-gallery-index]");
+      if (!button) return;
+      const product = products[Number(button.dataset.galleryIndex)];
+      if (product) openGallery(product);
+    });
+
+    lightboxClose.addEventListener("click", closeGallery);
+    lightboxPrev.addEventListener("click", () => nextGallery(-1));
+    lightboxNext.addEventListener("click", () => nextGallery(1));
+    lightboxEl.addEventListener("click", (event) => {
+      if (event.target === lightboxEl) closeGallery();
+    });
+    lightboxStage.addEventListener("touchstart", (event) => {
+      touchStartX = event.changedTouches[0].clientX;
+    }, { passive: true });
+    lightboxStage.addEventListener("touchend", (event) => {
+      const diff = event.changedTouches[0].clientX - touchStartX;
+      if (Math.abs(diff) < 40) return;
+      nextGallery(diff < 0 ? 1 : -1);
+    }, { passive: true });
+    document.addEventListener("keydown", (event) => {
+      if (!lightboxEl.classList.contains("open")) return;
+      if (event.key === "Escape") closeGallery();
+      if (event.key === "ArrowRight") nextGallery(1);
+      if (event.key === "ArrowLeft") nextGallery(-1);
+    });
+
+    async function loadProducts() {
+      try {
+        const response = await fetch("/api/products", { cache: "no-store" });
+        if (!response.ok) return;
+        const data = await response.json();
+        if (Array.isArray(data.products) && data.products.length) {
+          products = data.products;
+        }
+      } catch (error) {
+        // Static fallback keeps the catalogue visible if the API is not running.
+      }
+    }
+
+    loadProducts().finally(render);
+  </script>
+</body>
+</html>

@@ -1,0 +1,720 @@
+<!doctype html>
+<html lang="az">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Parlaq Yuva | Ev təmizliyi</title>
+    <meta name="description" content="Parlaq Yuva ev təmizliyi xidmətləri" />
+    <meta property="og:title" content="Parlaq Yuva" />
+    <meta property="og:description" content="Təmiz ev. Rahat nəfəs. Parlaq nəticə." />
+    <meta property="og:image" content="assets/cover.jpg" />
+    <style>
+      :root {
+        --blue: #0e88bd;
+        --blue-dark: #075f88;
+        --green: #46a83b;
+        --yellow: #f2bd12;
+        --ink: #143846;
+        --muted: #657983;
+        --line: #d7eef2;
+        --bg: #f4fbfb;
+        --card: #ffffff;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", "Arial Unicode MS", Arial, sans-serif;
+        color: var(--ink);
+        background: var(--bg);
+        font-synthesis: none;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      a {
+        color: inherit;
+        font: inherit;
+        text-decoration: none;
+      }
+
+      button,
+      input,
+      textarea,
+      select {
+        font: inherit;
+      }
+
+      .hero {
+        min-height: 92vh;
+        display: grid;
+        align-items: center;
+        position: relative;
+        overflow: hidden;
+        padding: 28px 18px 36px;
+        background:
+          radial-gradient(circle at 14% 16%, rgba(14, 136, 189, 0.12), transparent 18rem),
+          radial-gradient(circle at 88% 12%, rgba(70, 168, 59, 0.12), transparent 16rem),
+          linear-gradient(180deg, #faffff 0%, #edf8f8 58%, #d8edd4 100%);
+      }
+
+      .hero::after {
+        content: "";
+        position: absolute;
+        inset: auto -12vw -8vh -12vw;
+        height: 28vh;
+        background: linear-gradient(135deg, rgba(14, 136, 189, 0.78), rgba(70, 168, 59, 0.72));
+        transform: skewY(-5deg);
+        transform-origin: left top;
+      }
+
+      .wrap {
+        width: min(1120px, 100%);
+        margin: 0 auto;
+        position: relative;
+        z-index: 1;
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        margin-bottom: 26px;
+      }
+
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+      }
+
+      .logo {
+        width: 64px;
+        height: 64px;
+        border-radius: 999px;
+        object-fit: cover;
+        background: white;
+        box-shadow: 0 10px 28px rgba(7, 95, 136, 0.18);
+      }
+
+      .brand strong {
+        display: block;
+        font-size: 22px;
+        color: var(--blue);
+        line-height: 1.05;
+      }
+
+      .brand span {
+        display: block;
+        color: var(--green);
+        font-size: 14px;
+        margin-top: 3px;
+      }
+
+      .pill {
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 11px 16px;
+        color: var(--blue-dark);
+        font-weight: 700;
+        white-space: nowrap;
+        box-shadow: 0 8px 24px rgba(7, 95, 136, 0.08);
+      }
+
+      .hero-grid {
+        display: grid;
+        grid-template-columns: 1fr 0.82fr;
+        gap: 44px;
+        align-items: center;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(44px, 8vw, 92px);
+        line-height: 0.95;
+        color: var(--blue);
+        letter-spacing: 0;
+      }
+
+      .lead {
+        margin: 22px 0 0;
+        font-size: clamp(19px, 3vw, 28px);
+        line-height: 1.35;
+        color: var(--green);
+        max-width: 680px;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 30px;
+      }
+
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 52px;
+        padding: 14px 20px;
+        border-radius: 999px;
+        font-weight: 800;
+        border: 1px solid transparent;
+      }
+
+      .button.primary {
+        background: var(--blue);
+        color: white;
+        box-shadow: 0 14px 28px rgba(14, 136, 189, 0.24);
+      }
+
+      .button.secondary {
+        background: white;
+        color: var(--blue-dark);
+        border-color: var(--line);
+      }
+
+      .cover {
+        width: min(390px, 100%);
+        justify-self: center;
+        border-radius: 22px;
+        box-shadow: 0 22px 60px rgba(7, 95, 136, 0.2);
+        border: 8px solid rgba(255, 255, 255, 0.78);
+      }
+
+      .section {
+        padding: 46px 18px;
+        background: white;
+      }
+
+      .section:nth-of-type(odd) {
+        background: #f7fcfc;
+      }
+
+      .section h2 {
+        margin: 0 0 20px;
+        font-size: clamp(28px, 5vw, 44px);
+        color: var(--blue-dark);
+      }
+
+      .services {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+        gap: 14px;
+      }
+
+      .before-after {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 18px;
+      }
+
+      .result-card {
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: white;
+        box-shadow: 0 12px 28px rgba(7, 95, 136, 0.08);
+      }
+
+      .result-card img {
+        width: 100%;
+        aspect-ratio: 4 / 3;
+        display: block;
+        object-fit: cover;
+      }
+
+      .result-card img.room-result {
+        object-position: center 48%;
+      }
+
+      .result-card div {
+        padding: 16px 18px 18px;
+      }
+
+      .result-card h3 {
+        margin: 0;
+        color: var(--ink);
+      }
+
+      .result-card p {
+        margin: 8px 0 0;
+        color: var(--muted);
+        line-height: 1.45;
+      }
+
+      .contact-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+      }
+
+      .contact-box {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: white;
+        padding: 24px;
+        box-shadow: 0 12px 28px rgba(7, 95, 136, 0.08);
+      }
+
+      .contact-box h3 {
+        margin: 0 0 10px;
+        font-size: 24px;
+        color: var(--blue-dark);
+      }
+
+      .contact-box p {
+        margin: 0 0 16px;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      .contact-line {
+        display: block;
+        margin-top: 10px;
+        font-weight: 800;
+        color: var(--blue-dark);
+        overflow-wrap: anywhere;
+      }
+
+      .apply-form {
+        display: grid;
+        gap: 12px;
+      }
+
+      .apply-form label {
+        display: grid;
+        gap: 6px;
+        color: var(--blue-dark);
+        font-weight: 800;
+      }
+
+      .apply-form input {
+        width: 100%;
+        min-height: 46px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 11px 12px;
+        color: var(--ink);
+        background: #faffff;
+        font-size: 16px;
+      }
+
+      .form-note {
+        margin: 2px 0 4px;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.45;
+      }
+
+      .application-modal[hidden] {
+        display: none;
+      }
+
+      .application-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 10;
+        display: grid;
+        place-items: center;
+        padding: 18px;
+        background: rgba(20, 56, 70, 0.58);
+      }
+
+      .application-panel {
+        width: min(520px, 100%);
+        max-height: min(86vh, 760px);
+        overflow: auto;
+        border-radius: 8px;
+        border: 1px solid var(--line);
+        background: white;
+        padding: 22px;
+        box-shadow: 0 24px 72px rgba(7, 95, 136, 0.28);
+      }
+
+      .application-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 14px;
+      }
+
+      .application-head h3 {
+        margin: 0;
+        color: var(--blue-dark);
+        font-size: 24px;
+      }
+
+      .close-button {
+        width: 38px;
+        height: 38px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: #faffff;
+        color: var(--blue-dark);
+        cursor: pointer;
+        font-size: 22px;
+        font-weight: 800;
+        line-height: 1;
+      }
+
+      .card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 20px;
+        min-height: 168px;
+        box-shadow: 0 12px 28px rgba(7, 95, 136, 0.07);
+      }
+
+      .icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        color: white;
+        font-weight: 900;
+        font-size: 22px;
+        margin-bottom: 14px;
+      }
+
+      .card h3 {
+        margin: 0;
+        font-size: 20px;
+        color: var(--ink);
+      }
+
+      .card p {
+        margin: 9px 0 0;
+        color: var(--muted);
+        line-height: 1.45;
+      }
+
+      .service-order {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        min-height: 42px;
+        margin-top: 16px;
+        border-radius: 999px;
+        background: var(--blue);
+        color: white;
+        font-weight: 800;
+        box-shadow: 0 10px 22px rgba(14, 136, 189, 0.18);
+      }
+
+      .cta-band {
+        padding: 32px 18px 44px;
+        background: linear-gradient(135deg, var(--blue), var(--green));
+        color: white;
+      }
+
+      .cta-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+      }
+
+      .cta-inner strong {
+        display: block;
+        font-size: clamp(24px, 4vw, 38px);
+      }
+
+      .cta-phone {
+        white-space: nowrap;
+        max-width: 100%;
+        font-size: clamp(18px, 4.6vw, 38px);
+        line-height: 1.15;
+        letter-spacing: 0;
+      }
+
+      .cta-inner span {
+        display: block;
+        opacity: 0.9;
+        margin-top: 6px;
+      }
+
+      @media (max-width: 820px) {
+        .hero {
+          min-height: auto;
+          padding-top: 18px;
+        }
+
+        .topbar {
+          align-items: flex-start;
+        }
+
+        .pill {
+          display: none;
+        }
+
+        .hero-grid {
+          grid-template-columns: 1fr;
+          gap: 28px;
+        }
+
+        .cover {
+          width: min(330px, 92vw);
+        }
+
+        .services {
+          grid-template-columns: 1fr 1fr;
+        }
+
+        .before-after,
+        .contact-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .cta-inner {
+          align-items: flex-start;
+          flex-direction: column;
+          width: 100%;
+        }
+      }
+
+      @media (max-width: 520px) {
+        .services {
+          grid-template-columns: 1fr;
+        }
+
+        .button {
+          width: 100%;
+        }
+
+        .cta-band {
+          padding-left: 12px;
+          padding-right: 12px;
+        }
+
+        .cta-phone {
+          width: 100%;
+          font-size: clamp(15px, 4.25vw, 20px);
+        }
+
+        .application-panel {
+          padding: 18px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="hero">
+      <div class="wrap">
+        <div class="topbar">
+          <div class="brand">
+            <img class="logo" src="assets/cover.jpg" alt="Parlaq Yuva loqosu" />
+            <div>
+              <strong>Parlaq Yuva</strong>
+              <span>Ev təmizliyi xidməti</span>
+            </div>
+          </div>
+          <a class="pill" href="tel:+994505007556">+994 50 500 75 56</a>
+        </div>
+
+        <div class="hero-grid">
+          <section>
+            <h1>Parlaq Yuva</h1>
+            <p class="lead">Təmiz ev. Rahat nəfəs. Parlaq nəticə.</p>
+            <div class="actions">
+              <a class="button primary" href="https://wa.me/994505007556?text=Salam%2C%20Parlaq%20Yuva%20ev%20t%C9%99mizliyi%20haqq%C4%B1nda%20m%C9%99lumat%20ist%C9%99yir%C9%99m">WhatsApp ilə sifariş et</a>
+              <a class="button secondary" href="#xidmetler">Xidmətlərə bax</a>
+              <a class="button secondary" href="#muraciet">İş üçün müraciət</a>
+            </div>
+          </section>
+          <img class="cover" src="assets/cover.jpg" alt="Parlaq Yuva kataloq dizaynı" />
+        </div>
+      </div>
+    </main>
+
+    <section class="section" id="xidmetler">
+      <div class="wrap">
+        <h2>Xidmətlər</h2>
+        <div class="services">
+          <article class="card">
+            <div class="icon" style="background: var(--blue)">+</div>
+            <h3>Ümumi ev təmizliyi</h3>
+            <p>Gündəlik və dərin təmizlik, otaqların səliqəyə salınması.</p>
+            <a class="service-order" href="https://wa.me/994505007556?text=Salam%2C%20Parlaq%20Yuva%20%C3%BCzr%C9%99%20%C3%9Cmumi%20ev%20t%C9%99mizliyi%20xidm%C9%99tini%20sifari%C5%9F%20etm%C9%99k%20ist%C9%99yir%C9%99m">Sifariş et</a>
+          </article>
+          <article class="card">
+            <div class="icon" style="background: var(--green)">✓</div>
+            <h3>Mətbəx və hamam</h3>
+            <p>Yağ, ərp, ləkə və çətin təmizlənən yerlərə xüsusi yanaşma.</p>
+            <a class="service-order" href="https://wa.me/994505007556?text=Salam%2C%20Parlaq%20Yuva%20%C3%BCzr%C9%99%20M%C9%99tb%C9%99x%20v%C9%99%20hamam%20xidm%C9%99tini%20sifari%C5%9F%20etm%C9%99k%20ist%C9%99yir%C9%99m">Sifariş et</a>
+          </article>
+          <article class="card">
+            <div class="icon" style="background: var(--yellow)">□</div>
+            <h3>Pəncərə təmizliyi</h3>
+            <p>Şüşə, çərçivə və parlaq görünüş üçün səliqəli təmizlik.</p>
+            <a class="service-order" href="https://wa.me/994505007556?text=Salam%2C%20Parlaq%20Yuva%20%C3%BCzr%C9%99%20P%C9%99nc%C9%99r%C9%99%20t%C9%99mizliyi%20xidm%C9%99tini%20sifari%C5%9F%20etm%C9%99k%20ist%C9%99yir%C9%99m">Sifariş et</a>
+          </article>
+          <article class="card">
+            <div class="icon" style="background: var(--blue-dark)">⌂</div>
+            <h3>Köçdən sonra</h3>
+            <p>Evi yaşayışa hazır, təmiz və rahat vəziyyətə gətiririk.</p>
+            <a class="service-order" href="https://wa.me/994505007556?text=Salam%2C%20Parlaq%20Yuva%20%C3%BCzr%C9%99%20K%C3%B6%C3%A7d%C9%99n%20sonra%20t%C9%99mizlik%20xidm%C9%99tini%20sifari%C5%9F%20etm%C9%99k%20ist%C9%99yir%C9%99m">Sifariş et</a>
+          </article>
+          <article class="card">
+            <div class="icon" style="background: var(--green)">Of</div>
+            <h3>Ofis təmizliyi</h3>
+            <p>İş masaları, döşəmə və ümumi ofis sahələri üçün səliqəli təmizlik.</p>
+            <a class="service-order" href="https://wa.me/994505007556?text=Salam%2C%20Parlaq%20Yuva%20%C3%BCzr%C9%99%20Ofis%20t%C9%99mizliyi%20xidm%C9%99tini%20sifari%C5%9F%20etm%C9%99k%20ist%C9%99yir%C9%99m">Sifariş et</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="evvel-sonra">
+      <div class="wrap">
+        <h2>Əvvəl və sonra</h2>
+        <div class="before-after">
+          <article class="result-card">
+            <img class="room-result" src="assets/before-after-room-new.jpg" alt="Təmizlikdən əvvəl və sonra otaq görünüşü" />
+            <div>
+              <h3>Otaq təmizliyi</h3>
+              <p>Dağınıq otaq səliqəli, rahat və istifadəyə hazır məkana çevrilir.</p>
+            </div>
+          </article>
+          <article class="result-card">
+            <img src="assets/before-after-kitchen.jpg" alt="Mətbəx təmizliyindən əvvəl və sonra" />
+            <div>
+              <h3>Mətbəx təmizliyi</h3>
+              <p>Yağlı və çətin yerlər təmizlənir, mətbəx parlaq görünüş alır.</p>
+            </div>
+          </article>
+          <article class="result-card">
+            <img src="assets/before-after-bath.jpg" alt="Hamam təmizliyindən əvvəl və sonra" />
+            <div>
+              <h3>Hamam təmizliyi</h3>
+              <p>Ərp, ləkə və nəm izləri üçün detallı təmizlik yanaşması.</p>
+            </div>
+          </article>
+          <article class="result-card">
+            <img src="assets/before-after-office.jpg" alt="Ofis təmizliyindən əvvəl və sonra" />
+            <div>
+              <h3>Ofis təmizliyi</h3>
+              <p>Ofis döşəməsi və iş sahələri parlaq, səliqəli və təmiz görünüş alır.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="muraciet">
+      <div class="wrap">
+        <h2>İş üçün müraciət</h2>
+        <div class="contact-grid">
+          <div class="contact-box">
+            <h3>Komandaya qoşul</h3>
+            <p>Parlaq Yuva komandasında işləmək istəyənlər WhatsApp və ya email vasitəsilə müraciət edə bilərlər.</p>
+            <span class="contact-line">Telefon: +994 50 500 75 56</span>
+            <span class="contact-line">Email: parlagyuva@gmail.com</span>
+          </div>
+          <div class="contact-box">
+            <h3>Müraciət mesajı</h3>
+            <p>Düyməyə basın, məlumat pəncərəsi açılsın. Formanı doldurandan sonra məlumatlar hazır WhatsApp mesajına çevriləcək.</p>
+            <button class="button primary" id="openJobForm" type="button">İş üçün müraciət et</button>
+            <a class="contact-line" href="mailto:parlagyuva@gmail.com">parlagyuva@gmail.com</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="application-modal" id="applicationModal" hidden>
+      <div class="application-panel" role="dialog" aria-modal="true" aria-labelledby="applicationTitle">
+        <div class="application-head">
+          <h3 id="applicationTitle">İş üçün müraciət</h3>
+          <button class="close-button" id="closeJobForm" type="button" aria-label="Bağla">×</button>
+        </div>
+        <form class="apply-form" id="jobForm">
+          <label>
+            Ad
+            <input id="firstName" name="firstName" autocomplete="given-name" required />
+          </label>
+          <label>
+            Soyad
+            <input id="lastName" name="lastName" autocomplete="family-name" required />
+          </label>
+          <label>
+            Yaş
+            <input id="age" name="age" inputmode="numeric" required />
+          </label>
+          <label>
+            Əlaqə nömrəsi
+            <input id="applicantPhone" name="applicantPhone" inputmode="tel" autocomplete="tel" placeholder="+994..." required />
+          </label>
+          <label>
+            Təcrübə
+            <input id="experience" name="experience" placeholder="Məsələn: 2 il" required />
+          </label>
+          <button class="button primary" type="submit">WhatsApp-a göndər</button>
+        </form>
+      </div>
+    </div>
+
+    <section class="cta-band">
+      <div class="wrap cta-inner">
+        <div>
+          <strong class="cta-phone">Sifariş üçün: +994 50 500 75 56</strong>
+          <span>Parlaq Yuva ev təmizliyi kataloqu | parlagyuva@gmail.com</span>
+        </div>
+        <a class="button secondary" href="https://wa.me/994505007556?text=Salam%2C%20Parlaq%20Yuva%20xidm%C9%99ti%20%C3%BC%C3%A7%C3%BCn%20sifari%C5%9F%20verm%C9%99k%20ist%C9%99yir%C9%99m">Sifariş et</a>
+      </div>
+    </section>
+    <script>
+      const applicationModal = document.getElementById("applicationModal");
+      const openJobForm = document.getElementById("openJobForm");
+      const closeJobForm = document.getElementById("closeJobForm");
+      const jobForm = document.getElementById("jobForm");
+
+      openJobForm.addEventListener("click", () => {
+        applicationModal.hidden = false;
+        document.getElementById("firstName").focus();
+      });
+
+      closeJobForm.addEventListener("click", () => {
+        applicationModal.hidden = true;
+      });
+
+      applicationModal.addEventListener("click", (event) => {
+        if (event.target === applicationModal) {
+          applicationModal.hidden = true;
+        }
+      });
+
+      jobForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const firstName = document.getElementById("firstName").value.trim();
+        const lastName = document.getElementById("lastName").value.trim();
+        const age = document.getElementById("age").value.trim();
+        const applicantPhone = document.getElementById("applicantPhone").value.trim();
+        const experience = document.getElementById("experience").value.trim();
+        const text = [
+          "Salam, Parlaq Yuva komandasında iş üçün müraciət etmək istəyirəm.",
+          "",
+          `Ad: ${firstName}`,
+          `Soyad: ${lastName}`,
+          `Yaş: ${age}`,
+          `Əlaqə nömrəsi: ${applicantPhone}`,
+          `Təcrübə: ${experience}`
+        ].join("\n");
+        window.open(`https://wa.me/994505007556?text=${encodeURIComponent(text)}`, "_blank");
+      });
+    </script>
+  </body>
+</html>
