@@ -61,41 +61,22 @@
     <div class="orders" id="orders"></div>
   </main>
   <script>
-    const key = "restaurantOrders";
-    const billKey = "restaurantTableBills";
     const ordersEl = document.getElementById("orders");
     const billsEl = document.getElementById("bills");
     const notice = document.getElementById("notice");
     let soundEnabled = false;
-    let lastNewestId = Number(localStorage.getItem("lastSeenOrderId") || 0);
-    function read(){ return JSON.parse(localStorage.getItem(key) || "[]"); }
-    function write(orders){ localStorage.setItem(key, JSON.stringify(orders)); }
-    function readBills(){ return JSON.parse(localStorage.getItem(billKey) || "{}"); }
-    function writeBills(bills){ localStorage.setItem(billKey, JSON.stringify(bills)); }
-    function addToBill(order){
-      const bills = readBills();
-      const table = String(order.table);
-      if(!bills[table]) bills[table] = { table, total:0, items:[] };
-      bills[table].total += order.total;
-      order.items.forEach(item => bills[table].items.push({ ...item, orderId: order.id }));
-      writeBills(bills);
+    let lastNewestId = 0;
+    async function api(path, options){
+      const res = await fetch(path, options);
+      if(!res.ok) throw new Error("request failed");
+      return res.json();
     }
-    function setStatus(id, status){
-      const orders = read().map(order => {
-        if(order.id !== id) return order;
-        if(status === "Tamamlandı" && !order.billed) {
-          addToBill(order);
-          return { ...order, status, billed:true };
-        }
-        return { ...order, status };
-      });
-      write(orders);
+    async function setStatus(id, status){
+      await api(`/api/orders/${id}`, {method:"PATCH", headers:{"Content-Type":"application/json"}, body:JSON.stringify({status})});
       render();
     }
-    function closeBill(table){
-      const bills = readBills();
-      delete bills[String(table)];
-      writeBills(bills);
+    async function closeBill(table){
+      await api(`/api/bills/${encodeURIComponent(table)}`, {method:"DELETE"});
       render();
     }
     function beep(){
@@ -119,17 +100,14 @@
       notice.classList.add("show");
       setTimeout(() => notice.classList.remove("show"), 6500);
     }
-    function render(){
-      const orders = read();
+    async function render(){
+      const [orders, billList] = await Promise.all([api("/api/orders"), api("/api/bills")]);
       const newestId = orders[0]?.id || 0;
       if(newestId > lastNewestId){
         lastNewestId = newestId;
-        localStorage.setItem("lastSeenOrderId", newestId);
         showNotice();
         beep();
       }
-      const bills = readBills();
-      const billList = Object.values(bills);
       billsEl.innerHTML = billList.length ? billList.map(bill => `
         <article class="bill">
           <div class="table">Masa ${bill.table}</div>
@@ -167,7 +145,7 @@
       beep();
     };
     document.getElementById("refresh").onclick = render;
-    document.getElementById("clear").onclick = () => { write([]); writeBills({}); render(); };
+    document.getElementById("clear").onclick = async () => { await api("/api/orders", {method:"DELETE"}); render(); };
     render();
     setInterval(render, 2500);
   </script>
