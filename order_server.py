@@ -1,10 +1,13 @@
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from urllib.parse import unquote, urlparse
 import json
+import os
 import time
 
 orders = []
 bills = {}
+sales = []
+ADMIN_PASSWORD = "1234"
 
 
 class Handler(SimpleHTTPRequestHandler):
@@ -36,6 +39,18 @@ class Handler(SimpleHTTPRequestHandler):
             return
         if path == "/api/bills":
             self.api_json(list(bills.values()))
+            return
+        if path == "/api/sales":
+            query = urlparse(self.path).query
+            params = dict(pair.split("=", 1) for pair in query.split("&") if "=" in pair)
+            if params.get("password") != ADMIN_PASSWORD:
+                self.api_json({"error": "wrong password"}, 403)
+                return
+            self.api_json({
+                "total": sum(item["total"] for item in sales),
+                "count": len(sales),
+                "sales": sales,
+            })
             return
         super().do_GET()
 
@@ -71,6 +86,14 @@ class Handler(SimpleHTTPRequestHandler):
                         bill = bills.setdefault(table, {"table": table, "total": 0, "items": []})
                         bill["total"] += order["total"]
                         bill["items"].extend(order["items"])
+                        sales.insert(0, {
+                            "id": order["id"],
+                            "table": table,
+                            "items": order["items"],
+                            "total": order["total"],
+                            "time": time.strftime("%d.%m.%Y %H:%M"),
+                            "date": time.strftime("%Y-%m-%d"),
+                        })
                         order["billed"] = True
                     self.api_json(order)
                     return
@@ -86,9 +109,11 @@ class Handler(SimpleHTTPRequestHandler):
         if path == "/api/orders":
             orders.clear()
             bills.clear()
+            sales.clear()
             self.api_json({"ok": True})
             return
         self.api_json({"error": "not found"}, 404)
 
 
-ThreadingHTTPServer(("127.0.0.1", 8125), Handler).serve_forever()
+port = int(os.environ.get("PORT", "8125"))
+ThreadingHTTPServer(("127.0.0.1", port), Handler).serve_forever()

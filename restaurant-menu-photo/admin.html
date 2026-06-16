@@ -38,6 +38,13 @@
     .bill { background:white; border:2px solid #efd198; border-radius:8px; padding:14px; }
     .bill .table { font-size:22px; }
     .close-bill { margin-top:10px; background:var(--brand); color:white; }
+    .print-bill { margin-top:10px; margin-right:8px; background:var(--brand2); color:#211611; }
+    .sales-panel { background:white; border:1px solid var(--line); border-radius:8px; padding:14px; margin:18px 0 6px; display:grid; gap:10px; }
+    .sales-form { display:flex; gap:8px; flex-wrap:wrap; }
+    .sales-form input { min-height:40px; border:1px solid var(--line); border-radius:7px; padding:0 12px; font:inherit; min-width:170px; }
+    .sales-form button { background:var(--brand); color:white; }
+    .sales-total { display:none; background:#fff3d6; border:1px solid #efd198; border-radius:8px; padding:12px; font-weight:950; font-size:20px; }
+    .sales-error { color:var(--brand); font-weight:900; min-height:18px; }
   </style>
 </head>
 <body>
@@ -55,6 +62,15 @@
       <a class="menu" href="index.html">Menyuya qayıt</a>
     </div>
     <div class="notice" id="notice">Yeni sifariş gəldi</div>
+    <section class="sales-panel">
+      <strong>Günlük alver</strong>
+      <div class="sales-form">
+        <input id="salesPassword" type="password" placeholder="Şifrə">
+        <button id="showSales">Günlük alveri göstər</button>
+      </div>
+      <div class="sales-error" id="salesError"></div>
+      <div class="sales-total" id="salesTotal"></div>
+    </section>
     <h2 class="bill-title">Masa hesabları</h2>
     <div class="bills" id="bills"></div>
     <h2 class="bill-title">Sifarişlər</h2>
@@ -64,8 +80,11 @@
     const ordersEl = document.getElementById("orders");
     const billsEl = document.getElementById("bills");
     const notice = document.getElementById("notice");
+    const salesTotal = document.getElementById("salesTotal");
+    const salesError = document.getElementById("salesError");
     let soundEnabled = false;
     let lastNewestId = 0;
+    let lastBills = [];
     async function api(path, options){
       const res = await fetch(path, options);
       if(!res.ok) throw new Error("request failed");
@@ -78,6 +97,57 @@
     async function closeBill(table){
       await api(`/api/bills/${encodeURIComponent(table)}`, {method:"DELETE"});
       render();
+    }
+    async function loadSales(){
+      const password = document.getElementById("salesPassword").value.trim();
+      salesError.textContent = "";
+      salesTotal.style.display = "none";
+      try {
+        const data = await api(`/api/sales?password=${encodeURIComponent(password)}`);
+        salesTotal.textContent = `Bugünkü cəm alver: ${data.total} AZN (${data.count} tamamlanmış sifariş)`;
+        salesTotal.style.display = "block";
+      } catch(e) {
+        salesError.textContent = "Şifrə yanlışdır.";
+      }
+    }
+    function printBill(table){
+      const bill = lastBills.find(item => String(item.table) === String(table));
+      if(!bill) return;
+      const rows = bill.items.map(item => `
+        <tr>
+          <td>${item.name}</td>
+          <td style="text-align:center">${item.qty}</td>
+          <td style="text-align:right">${item.price * item.qty} AZN</td>
+        </tr>
+      `).join("");
+      const receipt = window.open("", "_blank", "width=360,height=640");
+      receipt.document.write(`
+        <!doctype html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <title>Masa ${bill.table} çek</title>
+          <style>
+            body { font-family: Arial, sans-serif; width: 300px; margin: 0 auto; padding: 16px; color: #111; }
+            h1 { font-size: 18px; text-align: center; margin: 0 0 6px; }
+            .meta { text-align: center; font-size: 12px; margin-bottom: 12px; }
+            table { width: 100%; border-collapse: collapse; font-size: 13px; }
+            td { border-bottom: 1px dashed #aaa; padding: 7px 0; vertical-align: top; }
+            .total { margin-top: 12px; padding-top: 10px; border-top: 2px solid #111; display: flex; justify-content: space-between; font-size: 18px; font-weight: 800; }
+            .thanks { text-align: center; margin-top: 14px; font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <h1>Restaurant Demo</h1>
+          <div class="meta">Masa ${bill.table}<br>${new Date().toLocaleString("az-AZ")}</div>
+          <table>${rows}</table>
+          <div class="total"><span>Cəmi</span><span>${bill.total} AZN</span></div>
+          <div class="thanks">Təşəkkür edirik</div>
+          <script>window.onload = () => { window.print(); }<\/script>
+        </body>
+        </html>
+      `);
+      receipt.document.close();
     }
     function beep(){
       if(!soundEnabled) return;
@@ -102,6 +172,7 @@
     }
     async function render(){
       const [orders, billList] = await Promise.all([api("/api/orders"), api("/api/bills")]);
+      lastBills = billList;
       const newestId = orders[0]?.id || 0;
       if(newestId > lastNewestId){
         lastNewestId = newestId;
@@ -115,6 +186,7 @@
             ${bill.items.map(item => `<li><span>${item.name} × ${item.qty}</span><strong>${item.price * item.qty} AZN</strong></li>`).join("")}
           </ul>
           <div class="total"><span>Hesab</span><span>${bill.total} AZN</span></div>
+          <button class="print-bill" onclick="printBill('${bill.table}')">Soft çek çap et</button>
           <button class="close-bill" onclick="closeBill('${bill.table}')">Hesabı bağla</button>
         </article>
       `).join("") : `<div class="empty">Hələ masa hesabı yoxdur.</div>`;
@@ -146,6 +218,7 @@
     };
     document.getElementById("refresh").onclick = render;
     document.getElementById("clear").onclick = async () => { await api("/api/orders", {method:"DELETE"}); render(); };
+    document.getElementById("showSales").onclick = loadSales;
     render();
     setInterval(render, 2500);
   </script>
