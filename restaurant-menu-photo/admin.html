@@ -15,8 +15,11 @@
     .toolbar { display:flex; gap:10px; flex-wrap:wrap; margin:16px 0; }
     button, a { min-height:40px; border:0; border-radius:7px; padding:0 12px; font:inherit; font-weight:900; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; }
     .refresh { background:var(--brand); color:white; }
+    .sound { background:var(--green); color:white; }
     .clear { background:white; color:var(--brand); border:1px solid var(--line); }
     .menu { background:var(--brand2); color:#211611; }
+    .notice { display:none; margin:14px 0 0; padding:12px; border-radius:8px; background:#dff6e8; color:#145c38; font-weight:950; border:1px solid #a9dfbd; }
+    .notice.show { display:block; }
     .orders { display:grid; gap:12px; padding-bottom:28px; }
     .order { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:14px; box-shadow:0 10px 28px rgba(78,44,22,.08); }
     .top { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; }
@@ -41,20 +44,53 @@
   </header>
   <main class="wrap">
     <div class="toolbar">
+      <button class="sound" id="sound">Səsi aktiv et</button>
       <button class="refresh" id="refresh">Yenilə</button>
       <button class="clear" id="clear">Sifarişləri təmizlə</button>
       <a class="menu" href="index.html">Menyuya qayıt</a>
     </div>
+    <div class="notice" id="notice">Yeni sifariş gəldi</div>
     <div class="orders" id="orders"></div>
   </main>
   <script>
     const key = "restaurantOrders";
     const ordersEl = document.getElementById("orders");
+    const notice = document.getElementById("notice");
+    let soundEnabled = false;
+    let lastNewestId = Number(localStorage.getItem("lastSeenOrderId") || 0);
     function read(){ return JSON.parse(localStorage.getItem(key) || "[]"); }
     function write(orders){ localStorage.setItem(key, JSON.stringify(orders)); }
     function setStatus(id, status){ const orders=read().map(o=>o.id===id?{...o,status}:o); write(orders); render(); }
+    function beep(){
+      if(!soundEnabled) return;
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      const ctx = new AudioContext();
+      [0, 180, 360].forEach(delay => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.value = 880;
+        gain.gain.setValueAtTime(0.0001, ctx.currentTime + delay / 1000);
+        gain.gain.exponentialRampToValueAtTime(0.25, ctx.currentTime + delay / 1000 + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + delay / 1000 + 0.14);
+        osc.connect(gain).connect(ctx.destination);
+        osc.start(ctx.currentTime + delay / 1000);
+        osc.stop(ctx.currentTime + delay / 1000 + 0.16);
+      });
+    }
+    function showNotice(){
+      notice.classList.add("show");
+      setTimeout(() => notice.classList.remove("show"), 6500);
+    }
     function render(){
       const orders = read();
+      const newestId = orders[0]?.id || 0;
+      if(newestId > lastNewestId){
+        lastNewestId = newestId;
+        localStorage.setItem("lastSeenOrderId", newestId);
+        showNotice();
+        beep();
+      }
       ordersEl.innerHTML = orders.length ? orders.map(order => `
         <article class="order">
           <div class="top">
@@ -75,9 +111,16 @@
         </article>
       `).join("") : `<div class="empty">Hələ sifariş yoxdur.</div>`;
     }
+    document.getElementById("sound").onclick = () => {
+      soundEnabled = true;
+      document.getElementById("sound").textContent = "Səs aktivdir";
+      showNotice();
+      beep();
+    };
     document.getElementById("refresh").onclick = render;
     document.getElementById("clear").onclick = () => { write([]); render(); };
     render();
+    setInterval(render, 2500);
   </script>
 </body>
 </html>
