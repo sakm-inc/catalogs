@@ -53,6 +53,11 @@
     .qty { border:1px solid var(--line); background:white; border-radius:7px; min-width:34px; min-height:32px; font-weight:900; cursor:pointer; }
     .grand { margin-top:14px; padding:14px; background:#fff3d6; border:1px solid #efd198; border-radius:8px; display:flex; justify-content:space-between; font-size:20px; font-weight:950; }
     .show-note { margin:10px 0 0; color:var(--muted); line-height:1.35; }
+    .order-box { display:grid; gap:9px; margin-top:12px; padding:12px; border:1px solid var(--line); border-radius:8px; background:white; }
+    .order-box label { font-weight:900; color:var(--brand); }
+    .table-input { width:100%; min-height:42px; border:1px solid var(--line); border-radius:7px; padding:0 12px; font:inherit; color:var(--ink); }
+    .send-order { min-height:44px; border:0; border-radius:7px; background:var(--brand); color:white; font:inherit; font-weight:950; cursor:pointer; }
+    .order-message { min-height:20px; color:var(--green); font-weight:900; }
     @media (max-width:640px){ .grid{grid-template-columns:1fr 1fr; gap:10px}.pic{height:118px}.info{padding:10px}.name{font-size:14px}.price{font-size:13px}.desc{font-size:12px; min-height:48px}.add{min-height:38px}.hero{min-height:260px}.topbar{margin-top:-26px}.cartbar .wrap{min-height:66px}.open-cart{padding:0 10px}.section-title h2{font-size:20px} }
   </style>
 </head>
@@ -95,7 +100,13 @@
       </div>
       <div id="cartList"></div>
       <div class="grand"><span>Cəmi</span><span id="grandTotal">0 AZN</span></div>
-      <p class="show-note">Bu ekranı ofisianta göstərin. Ofisiant seçilən yeməkləri və ümumi məbləği buradan görür.</p>
+      <div class="order-box">
+        <label for="tableNo">Masa nömrəsi</label>
+        <input class="table-input" id="tableNo" inputmode="numeric" placeholder="Məsələn: 7">
+        <button class="send-order" id="sendOrder">Sifariş et</button>
+        <div class="order-message" id="orderMessage"></div>
+      </div>
+      <p class="show-note">Sifariş göndəriləndən sonra admin/ofisiant panelində masa nömrəsi, yeməklər və cəmi məbləğ görünür.</p>
     </div>
   </div>
 
@@ -120,10 +131,13 @@
     function filtered(){ return items.filter(i => (active==="Hamısı" || i.category===active) && (i.name.toLowerCase().includes(query) || i.desc.toLowerCase().includes(query))); }
     function render(){ const list=filtered(); title.textContent = active==="Hamısı" ? "Bütün menyu" : active; count.textContent = `${list.length} seçim`; grid.innerHTML = list.map(i => `<article class="item"><div class="pic" style="background-image:url('${i.img}')"></div><div class="info"><div class="meta"><h3 class="name">${i.name}</h3><div class="price">${i.price} AZN</div></div><p class="desc">${i.desc}</p><button class="add" data-id="${i.id}">Səbətə at</button></div></article>`).join(""); }
     grid.addEventListener("click", e => { const id=e.target.dataset.id; if(!id) return; cart.set(id, (cart.get(id)||0)+1); updateCart(); });
-    function updateCart(){ const rows=[...cart.entries()].map(([id, qty]) => ({...items.find(i=>i.id===id), qty})); const total=rows.reduce((s,i)=>s+i.price*i.qty,0); const qty=rows.reduce((s,i)=>s+i.qty,0); document.getElementById("barTotal").textContent=total+" AZN"; document.getElementById("barCount").textContent=qty?`${qty} seçim səbətdə`:"Səbət boşdur"; document.getElementById("grandTotal").textContent=total+" AZN"; document.getElementById("cartList").innerHTML = rows.length ? rows.map(i => `<div class="cart-row"><div><strong>${i.name}</strong><br><span>${i.price} AZN × ${i.qty}</span></div><div class="cart-actions"><button class="qty" data-minus="${i.id}">−</button><b>${i.qty}</b><button class="qty" data-plus="${i.id}">+</button></div></div>`).join("") : "<p>Səbət boşdur.</p>"; }
+    function cartRows(){ return [...cart.entries()].map(([id, qty]) => ({...items.find(i=>i.id===id), qty})); }
+    function updateCart(){ const rows=cartRows(); const total=rows.reduce((s,i)=>s+i.price*i.qty,0); const qty=rows.reduce((s,i)=>s+i.qty,0); document.getElementById("barTotal").textContent=total+" AZN"; document.getElementById("barCount").textContent=qty?`${qty} seçim səbətdə`:"Səbət boşdur"; document.getElementById("grandTotal").textContent=total+" AZN"; document.getElementById("cartList").innerHTML = rows.length ? rows.map(i => `<div class="cart-row"><div><strong>${i.name}</strong><br><span>${i.price} AZN × ${i.qty}</span></div><div class="cart-actions"><button class="qty" data-minus="${i.id}">−</button><b>${i.qty}</b><button class="qty" data-plus="${i.id}">+</button></div></div>`).join("") : "<p>Səbət boşdur.</p>"; }
+    function saveOrder(){ const rows=cartRows(); const msg=document.getElementById("orderMessage"); const table=document.getElementById("tableNo").value.trim(); if(!rows.length){ msg.textContent="Səbət boşdur."; return; } if(!table){ msg.textContent="Masa nömrəsini yazın."; return; } const total=rows.reduce((s,i)=>s+i.price*i.qty,0); const orders=JSON.parse(localStorage.getItem("restaurantOrders")||"[]"); orders.unshift({ id:Date.now(), table, total, status:"Yeni", time:new Date().toLocaleString("az-AZ"), items:rows.map(i=>({name:i.name, qty:i.qty, price:i.price})) }); localStorage.setItem("restaurantOrders", JSON.stringify(orders)); cart.clear(); updateCart(); msg.textContent=`Masa ${table} sifarişi admin panelə düşdü.`; }
     document.getElementById("openCart").onclick=()=>{document.getElementById("drawer").classList.add("open"); updateCart();};
     document.getElementById("closeCart").onclick=()=>document.getElementById("drawer").classList.remove("open");
     document.getElementById("cartList").addEventListener("click", e => { const plus=e.target.dataset.plus, minus=e.target.dataset.minus; if(plus) cart.set(plus,(cart.get(plus)||0)+1); if(minus){ const n=(cart.get(minus)||0)-1; n>0?cart.set(minus,n):cart.delete(minus); } updateCart(); });
+    document.getElementById("sendOrder").onclick=saveOrder;
     render(); updateCart();
   </script>
 </body>
