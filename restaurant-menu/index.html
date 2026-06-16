@@ -110,16 +110,7 @@
       "Alkoqollu içkilər": [["Qırmızı şərab",12,"Qədəh ilə servis","red wine"],["Ağ şərab",12,"Soyuq servis","white wine"],["Pivə",6,"Soyuq pivə","beer glass"],["Konyak",14,"Qədəh ilə","cognac"],["Viski",16,"Qədəh ilə","whiskey"],["Vodka",10,"Soyuq servis","vodka"],["Mojito alkoqollu",12,"Nanə və lime","mojito cocktail"],["Şampan",18,"Qədəh ilə","champagne"]],
       "Sular": [["Sirab qazsız",2,"0.5L","water bottle"],["Sirab qazlı",2,"0.5L","sparkling water"],["Badamlı qazsız",2,"0.5L","mineral water"],["Badamlı qazlı",2,"0.5L","sparkling mineral water"],["Borjomi",5,"Mineral su","borjomi water"],["Buzlu su",1,"Stəkan ilə","ice water"],["Limonlu su",3,"Limon və nanə ilə","lemon water"],["Soda",3,"Qazlı soda","soda water"]]
     };
-    const imageTerms = {
-      "Yeməklər": "food",
-      "Kabablar": "kebab",
-      "Salatlar": "salad",
-      "Desertlər": "dessert",
-      "İçkilər": "coffee",
-      "Alkoqollu içkilər": "cocktail",
-      "Sular": "water"
-    };
-    const items = Object.entries(raw).flatMap(([category, list]) => list.map((x, i) => ({id: category + i, category, name:x[0], price:x[1], desc:x[2], img:`https://loremflickr.com/640/420/${imageTerms[category]}?lock=${100 + Object.keys(raw).indexOf(category)*20 + i}`})));
+    const items = Object.entries(raw).flatMap(([category, list]) => list.map((x, i) => ({id: category + i, category, name:x[0], price:x[1], desc:x[2], img:`https://loremflickr.com/640/420/${encodeURIComponent(x[3])}?lock=${100 + Object.keys(raw).indexOf(category)*20 + i}`})));
     let active = "Hamısı"; let query = ""; const cart = new Map();
     const tabs = document.getElementById("tabs"), grid = document.getElementById("grid"), title = document.getElementById("title"), count = document.getElementById("count");
     tabs.innerHTML = cats.map(c => `<button class="tab ${c==="Hamısı"?"active":""}" data-cat="${c}">${c}</button>`).join("");
