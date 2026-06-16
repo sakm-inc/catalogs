@@ -33,6 +33,11 @@
     .prep { background:#fff3d6; color:#6d4100; }
     .done { background:var(--green); color:white; }
     .empty { background:white; border:1px dashed var(--line); border-radius:8px; padding:22px; color:var(--muted); font-weight:800; }
+    .bill-title { margin:22px 0 12px; color:var(--brand); }
+    .bills { display:grid; grid-template-columns:repeat(auto-fit, minmax(250px, 1fr)); gap:12px; margin-bottom:24px; }
+    .bill { background:white; border:2px solid #efd198; border-radius:8px; padding:14px; }
+    .bill .table { font-size:22px; }
+    .close-bill { margin-top:10px; background:var(--brand); color:white; }
   </style>
 </head>
 <body>
@@ -50,17 +55,49 @@
       <a class="menu" href="index.html">Menyuya qayıt</a>
     </div>
     <div class="notice" id="notice">Yeni sifariş gəldi</div>
+    <h2 class="bill-title">Masa hesabları</h2>
+    <div class="bills" id="bills"></div>
+    <h2 class="bill-title">Sifarişlər</h2>
     <div class="orders" id="orders"></div>
   </main>
   <script>
     const key = "restaurantOrders";
+    const billKey = "restaurantTableBills";
     const ordersEl = document.getElementById("orders");
+    const billsEl = document.getElementById("bills");
     const notice = document.getElementById("notice");
     let soundEnabled = false;
     let lastNewestId = Number(localStorage.getItem("lastSeenOrderId") || 0);
     function read(){ return JSON.parse(localStorage.getItem(key) || "[]"); }
     function write(orders){ localStorage.setItem(key, JSON.stringify(orders)); }
-    function setStatus(id, status){ const orders=read().map(o=>o.id===id?{...o,status}:o); write(orders); render(); }
+    function readBills(){ return JSON.parse(localStorage.getItem(billKey) || "{}"); }
+    function writeBills(bills){ localStorage.setItem(billKey, JSON.stringify(bills)); }
+    function addToBill(order){
+      const bills = readBills();
+      const table = String(order.table);
+      if(!bills[table]) bills[table] = { table, total:0, items:[] };
+      bills[table].total += order.total;
+      order.items.forEach(item => bills[table].items.push({ ...item, orderId: order.id }));
+      writeBills(bills);
+    }
+    function setStatus(id, status){
+      const orders = read().map(order => {
+        if(order.id !== id) return order;
+        if(status === "Tamamlandı" && !order.billed) {
+          addToBill(order);
+          return { ...order, status, billed:true };
+        }
+        return { ...order, status };
+      });
+      write(orders);
+      render();
+    }
+    function closeBill(table){
+      const bills = readBills();
+      delete bills[String(table)];
+      writeBills(bills);
+      render();
+    }
     function beep(){
       if(!soundEnabled) return;
       const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -91,6 +128,18 @@
         showNotice();
         beep();
       }
+      const bills = readBills();
+      const billList = Object.values(bills);
+      billsEl.innerHTML = billList.length ? billList.map(bill => `
+        <article class="bill">
+          <div class="table">Masa ${bill.table}</div>
+          <ul class="items">
+            ${bill.items.map(item => `<li><span>${item.name} × ${item.qty}</span><strong>${item.price * item.qty} AZN</strong></li>`).join("")}
+          </ul>
+          <div class="total"><span>Hesab</span><span>${bill.total} AZN</span></div>
+          <button class="close-bill" onclick="closeBill('${bill.table}')">Hesabı bağla</button>
+        </article>
+      `).join("") : `<div class="empty">Hələ masa hesabı yoxdur.</div>`;
       ordersEl.innerHTML = orders.length ? orders.map(order => `
         <article class="order">
           <div class="top">
@@ -106,7 +155,7 @@
           <div class="total"><span>Cəmi</span><span>${order.total} AZN</span></div>
           <div class="actions">
             <button class="prep" onclick="setStatus(${order.id}, 'Hazırlanır')">Hazırlanır</button>
-            <button class="done" onclick="setStatus(${order.id}, 'Tamamlandı')">Tamamlandı</button>
+            <button class="done" onclick="setStatus(${order.id}, 'Tamamlandı')">${order.billed ? "Hesaba yazılıb" : "Tamamlandı"}</button>
           </div>
         </article>
       `).join("") : `<div class="empty">Hələ sifariş yoxdur.</div>`;
@@ -118,7 +167,7 @@
       beep();
     };
     document.getElementById("refresh").onclick = render;
-    document.getElementById("clear").onclick = () => { write([]); render(); };
+    document.getElementById("clear").onclick = () => { write([]); writeBills({}); render(); };
     render();
     setInterval(render, 2500);
   </script>
