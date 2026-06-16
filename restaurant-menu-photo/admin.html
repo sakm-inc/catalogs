@@ -110,44 +110,113 @@
         salesError.textContent = "Şifrə yanlışdır.";
       }
     }
-    function printBill(table){
-      const bill = lastBills.find(item => String(item.table) === String(table));
-      if(!bill) return;
+    function receiptHtml(bill){
+      const createdAt = new Date().toLocaleString("az-AZ", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
       const rows = bill.items.map(item => `
         <tr>
-          <td>${item.name}</td>
-          <td style="text-align:center">${item.qty}</td>
-          <td style="text-align:right">${item.price * item.qty} AZN</td>
+          <td class="name">${item.name}</td>
+          <td class="qty">${item.qty}</td>
+          <td class="sum">${item.price * item.qty} AZN</td>
         </tr>
       `).join("");
-      const receipt = window.open("", "_blank", "width=360,height=640");
-      receipt.document.write(`
+      return `
         <!doctype html>
         <html>
         <head>
           <meta charset="utf-8">
           <title>Masa ${bill.table} çek</title>
           <style>
-            body { font-family: Arial, sans-serif; width: 300px; margin: 0 auto; padding: 16px; color: #111; }
-            h1 { font-size: 18px; text-align: center; margin: 0 0 6px; }
-            .meta { text-align: center; font-size: 12px; margin-bottom: 12px; }
-            table { width: 100%; border-collapse: collapse; font-size: 13px; }
-            td { border-bottom: 1px dashed #aaa; padding: 7px 0; vertical-align: top; }
-            .total { margin-top: 12px; padding-top: 10px; border-top: 2px solid #111; display: flex; justify-content: space-between; font-size: 18px; font-weight: 800; }
-            .thanks { text-align: center; margin-top: 14px; font-size: 12px; }
+            @page { size: 80mm auto; margin: 4mm; }
+            * { box-sizing: border-box; }
+            body {
+              width: 72mm;
+              margin: 0 auto;
+              padding: 0;
+              color: #000;
+              background: #fff;
+              font-family: Arial, sans-serif;
+              font-size: 12px;
+            }
+            .receipt { width: 100%; }
+            h1 {
+              margin: 0 0 4px;
+              text-align: center;
+              font-size: 17px;
+              line-height: 1.2;
+              font-weight: 800;
+            }
+            .meta {
+              text-align: center;
+              font-size: 11px;
+              line-height: 1.35;
+              padding-bottom: 8px;
+              border-bottom: 1px dashed #000;
+              margin-bottom: 8px;
+            }
+            table { width: 100%; border-collapse: collapse; }
+            td {
+              padding: 5px 0;
+              border-bottom: 1px dashed #999;
+              vertical-align: top;
+            }
+            .name { width: 54%; word-break: break-word; }
+            .qty { width: 14%; text-align: center; white-space: nowrap; }
+            .sum { width: 32%; text-align: right; white-space: nowrap; }
+            .total {
+              display: flex;
+              justify-content: space-between;
+              gap: 10px;
+              margin-top: 10px;
+              padding-top: 9px;
+              border-top: 2px solid #000;
+              font-size: 17px;
+              font-weight: 800;
+            }
+            .thanks {
+              text-align: center;
+              margin-top: 12px;
+              font-size: 11px;
+            }
           </style>
         </head>
         <body>
-          <h1>Restaurant Demo</h1>
-          <div class="meta">Masa ${bill.table}<br>${new Date().toLocaleString("az-AZ")}</div>
-          <table>${rows}</table>
-          <div class="total"><span>Cəmi</span><span>${bill.total} AZN</span></div>
-          <div class="thanks">Təşəkkür edirik</div>
-          <script>window.onload = () => { window.print(); }<\/script>
+          <div class="receipt">
+            <h1>Restaurant Demo</h1>
+            <div class="meta">Masa ${bill.table}<br>${createdAt}</div>
+            <table>${rows}</table>
+            <div class="total"><span>Cəmi</span><span>${bill.total} AZN</span></div>
+            <div class="thanks">Təşəkkür edirik</div>
+          </div>
         </body>
         </html>
-      `);
-      receipt.document.close();
+      `;
+    }
+    function printBill(table){
+      const bill = lastBills.find(item => String(item.table) === String(table));
+      if(!bill) return;
+      const frame = document.createElement("iframe");
+      frame.style.position = "fixed";
+      frame.style.right = "0";
+      frame.style.bottom = "0";
+      frame.style.width = "0";
+      frame.style.height = "0";
+      frame.style.border = "0";
+      document.body.appendChild(frame);
+      const doc = frame.contentWindow.document;
+      doc.open();
+      doc.write(receiptHtml(bill));
+      doc.close();
+      frame.onload = () => {
+        frame.contentWindow.focus();
+        frame.contentWindow.print();
+        setTimeout(() => frame.remove(), 1200);
+      };
     }
     function beep(){
       if(!soundEnabled) return;
