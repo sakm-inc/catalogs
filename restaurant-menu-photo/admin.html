@@ -104,7 +104,16 @@
       salesTotal.style.display = "none";
       try {
         const data = await api(`/api/sales?password=${encodeURIComponent(password)}`);
-        salesTotal.textContent = `Bugünkü cəm alver: ${data.total} AZN (${data.count} tamamlanmış sifariş)`;
+        const history = data.byDate.length ? data.byDate.map(day => `
+          <div style="display:flex;justify-content:space-between;gap:10px;border-top:1px solid #efd198;padding-top:8px;margin-top:8px;font-size:15px;">
+            <span>${day.date}</span>
+            <strong>${day.total} AZN / ${day.count} sifariş</strong>
+          </div>
+        `).join("") : "";
+        salesTotal.innerHTML = `
+          <div>Bugünkü cəm alver: ${data.todayTotal} AZN (${data.todayCount} tamamlanmış sifariş)</div>
+          ${history}
+        `;
         salesTotal.style.display = "block";
       } catch(e) {
         salesError.textContent = "Şifrə yanlışdır.";

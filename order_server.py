@@ -46,9 +46,19 @@ class Handler(SimpleHTTPRequestHandler):
             if params.get("password") != ADMIN_PASSWORD:
                 self.api_json({"error": "wrong password"}, 403)
                 return
+            by_date = {}
+            for sale in sales:
+                date = sale.get("date", "")
+                row = by_date.setdefault(date, {"date": date, "total": 0, "count": 0})
+                row["total"] += sale["total"]
+                row["count"] += 1
+            today = time.strftime("%Y-%m-%d")
             self.api_json({
                 "total": sum(item["total"] for item in sales),
+                "todayTotal": by_date.get(today, {}).get("total", 0),
+                "todayCount": by_date.get(today, {}).get("count", 0),
                 "count": len(sales),
+                "byDate": sorted(by_date.values(), key=lambda item: item["date"], reverse=True),
                 "sales": sales,
             })
             return
@@ -109,7 +119,6 @@ class Handler(SimpleHTTPRequestHandler):
         if path == "/api/orders":
             orders.clear()
             bills.clear()
-            sales.clear()
             self.api_json({"ok": True})
             return
         self.api_json({"error": "not found"}, 404)
