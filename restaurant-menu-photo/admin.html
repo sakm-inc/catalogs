@@ -26,6 +26,7 @@
     .utility-panel.open { display:grid; }
     .orders { display:grid; gap:12px; padding-bottom:28px; }
     .order { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:14px; box-shadow:0 10px 28px rgba(78,44,22,.08); }
+    .order.waiter { background:#edf8f1; border-color:#a9dfbd; }
     .top { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; }
     .table { font-size:24px; font-weight:950; color:var(--brand); }
     .status { border-radius:999px; background:#fff3d6; color:#6d4100; padding:7px 10px; font-weight:950; }
@@ -36,6 +37,7 @@
     .actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
     .prep { background:#fff3d6; color:#6d4100; }
     .done { background:var(--green); color:white; }
+    .waiter-done { background:var(--brand); color:white; }
     .empty { background:white; border:1px dashed var(--line); border-radius:8px; padding:22px; color:var(--muted); font-weight:800; }
     .bill-title { margin:22px 0 12px; color:var(--brand); }
     .bills { display:grid; grid-template-columns:repeat(auto-fit, minmax(250px, 1fr)); gap:12px; margin-bottom:24px; }
@@ -489,25 +491,44 @@
           <button class="close-bill" onclick="closeBill('${bill.table}')">Hesabı bağla</button>
         </article>
       `).join("") : `<div class="empty">Hələ masa hesabı yoxdur.</div>`;
-      ordersEl.innerHTML = orders.length ? orders.map(order => `
-        <article class="order">
-          <div class="top">
-            <div>
-              <div class="table">Masa ${order.table}</div>
-              <div class="meta">${order.time}</div>
+      ordersEl.innerHTML = orders.length ? orders.map(order => {
+        if(order.type === "waiter_call"){
+          return `
+            <article class="order waiter">
+              <div class="top">
+                <div>
+                  <div class="table">Masa ${order.table}</div>
+                  <div class="meta">${order.time}</div>
+                </div>
+                <div class="status">${order.status}</div>
+              </div>
+              <div class="total"><span>Çağırış</span><span>Ofisiant yaxınlaşsın</span></div>
+              <div class="actions">
+                <button class="waiter-done" onclick="setStatus(${order.id}, 'Ofisiant yaxınlaşdı')">Ofisiant yaxınlaşdı</button>
+              </div>
+            </article>
+          `;
+        }
+        return `
+          <article class="order">
+            <div class="top">
+              <div>
+                <div class="table">Masa ${order.table}</div>
+                <div class="meta">${order.time}</div>
+              </div>
+              <div class="status">${order.status}</div>
             </div>
-            <div class="status">${order.status}</div>
-          </div>
-          <ul class="items">
-            ${order.items.map(item => `<li><span>${item.name} × ${item.qty}</span><strong>${item.price * item.qty} AZN</strong></li>`).join("")}
-          </ul>
-          <div class="total"><span>Cəmi</span><span>${order.total} AZN</span></div>
-          <div class="actions">
-            <button class="prep" onclick="setStatus(${order.id}, 'Hazırlanır')">Hazırlanır</button>
-            <button class="done" onclick="setStatus(${order.id}, 'Tamamlandı')">${order.billed ? "Hesaba yazılıb" : "Tamamlandı"}</button>
-          </div>
-        </article>
-      `).join("") : `<div class="empty">Hələ sifariş yoxdur.</div>`;
+            <ul class="items">
+              ${order.items.map(item => `<li><span>${item.name} × ${item.qty}</span><strong>${item.price * item.qty} AZN</strong></li>`).join("")}
+            </ul>
+            <div class="total"><span>Cəmi</span><span>${order.total} AZN</span></div>
+            <div class="actions">
+              <button class="prep" onclick="setStatus(${order.id}, 'Hazırlanır')">Hazırlanır</button>
+              <button class="done" onclick="setStatus(${order.id}, 'Tamamlandı')">${order.billed ? "Hesaba yazılıb" : "Tamamlandı"}</button>
+            </div>
+          </article>
+        `;
+      }).join("") : `<div class="empty">Hələ sifariş yoxdur.</div>`;
     }
     document.getElementById("sound").onclick = () => {
       soundEnabled = true;

@@ -90,6 +90,7 @@ class Handler(SimpleHTTPRequestHandler):
             data = self.read_body()
             order = {
                 "id": int(time.time() * 1000),
+                "type": str(data.get("type", "order")).strip() or "order",
                 "table": str(data.get("table", "")).strip(),
                 "items": data.get("items", []),
                 "total": data.get("total", 0),
@@ -130,7 +131,7 @@ class Handler(SimpleHTTPRequestHandler):
                 if order["id"] == order_id:
                     status = data.get("status", order["status"])
                     order["status"] = status
-                    if status == "Tamamlandı" and not order.get("billed"):
+                    if status == "Tamamlandı" and order.get("type") != "waiter_call" and not order.get("billed"):
                         table = str(order["table"])
                         billed_at = time.strftime("%d.%m.%Y %H:%M")
                         bill = bills.setdefault(table, {
