@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="az">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Restaurant QR Menyu</title>
+  <meta name="description" content="Restoran üçün QR menyu nümunəsi: kateqoriyalar, səbət və ofisianta göstərilən yekun.">
+  <meta property="og:title" content="Restaurant QR Menyu">
+  <meta property="og:description" content="Yeməklər, kabablar, salatlar, desertlər, içkilər və səbət sistemi.">
+  <style>
+    :root { color-scheme: light; --bg:#f6f1e8; --ink:#211611; --muted:#7b675c; --card:#fffaf2; --line:#ead9c4; --brand:#8b1e18; --brand2:#c98b2b; --green:#1f7a4d; --shadow:0 18px 48px rgba(63,35,20,.16); }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:Inter, Arial, sans-serif; background:var(--bg); color:var(--ink); padding-bottom:86px; }
+    header { color:white; background:linear-gradient(120deg, #4a130e 0%, #8b1e18 52%, #c98b2b 100%); background-size:cover; background-position:center; }
+    .wrap { width:min(1180px, calc(100% - 28px)); margin:auto; }
+    .hero { min-height:320px; display:grid; align-content:center; gap:14px; padding:38px 0 56px; }
+    .brand { display:flex; align-items:center; gap:10px; font-weight:900; letter-spacing:.04em; }
+    .logo { width:42px; height:42px; border-radius:8px; background:#fff3d6; color:var(--brand); display:grid; place-items:center; font-size:24px; }
+    h1 { margin:0; max-width:760px; font-size:clamp(34px, 7vw, 70px); line-height:1; letter-spacing:0; }
+    .lead { max-width:650px; margin:0; color:#f8e8d1; font-size:17px; line-height:1.45; }
+    .topbar { margin-top:-36px; background:rgba(255,250,242,.96); border:1px solid rgba(255,255,255,.7); box-shadow:var(--shadow); border-radius:8px; padding:12px; display:grid; gap:10px; position:sticky; top:0; z-index:5; backdrop-filter:blur(12px); }
+    .search { width:100%; min-height:42px; border:1px solid var(--line); border-radius:7px; padding:0 12px; font:inherit; background:white; color:var(--ink); }
+    .tabs { display:flex; gap:8px; overflow-x:auto; padding-bottom:2px; }
+    .tab { white-space:nowrap; border:1px solid var(--line); background:white; color:var(--brand); border-radius:7px; min-height:38px; padding:0 12px; font-weight:900; cursor:pointer; }
+    .tab.active { background:var(--brand); border-color:var(--brand); color:white; }
+    main { padding:22px 0 34px; }
+    .section-title { display:flex; align-items:end; justify-content:space-between; gap:12px; margin:8px 0 16px; }
+    .section-title h2 { margin:0; font-size:23px; color:var(--brand); }
+    .count { color:var(--muted); font-weight:700; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(230px, 1fr)); gap:16px; }
+    .item { background:var(--card); border:1px solid var(--line); border-radius:8px; overflow:hidden; box-shadow:0 10px 28px rgba(78,44,22,.08); display:flex; flex-direction:column; }
+    .pic { height:168px; background:#ddd center/cover no-repeat; }
+    .info { padding:12px; display:grid; gap:8px; flex:1; }
+    .meta { display:flex; justify-content:space-between; gap:10px; align-items:flex-start; }
+    .name { margin:0; font-size:17px; line-height:1.2; font-weight:900; }
+    .price { color:var(--brand); font-weight:950; white-space:nowrap; }
+    .desc { margin:0; color:var(--muted); line-height:1.35; font-size:13px; min-height:36px; }
+    .add { min-height:42px; border:0; border-radius:7px; background:var(--green); color:white; font:inherit; font-weight:900; cursor:pointer; }
+    .cartbar { position:fixed; left:0; right:0; bottom:0; background:#1d130f; color:white; z-index:20; box-shadow:0 -14px 36px rgba(0,0,0,.22); }
+    .cartbar .wrap { display:flex; justify-content:space-between; align-items:center; gap:10px; min-height:70px; }
+    .cart-total { display:grid; gap:2px; }
+    .cart-total strong { font-size:18px; }
+    .cart-total span { color:#e8caa2; font-size:13px; }
+    .open-cart { border:0; background:var(--brand2); color:#211611; min-height:44px; border-radius:7px; padding:0 14px; font:inherit; font-weight:950; cursor:pointer; }
+    .drawer { position:fixed; inset:0; z-index:30; background:rgba(21,13,9,.55); display:none; align-items:flex-end; }
+    .drawer.open { display:flex; }
+    .panel { width:100%; max-height:86vh; overflow:auto; background:#fffaf2; border-radius:12px 12px 0 0; padding:16px; box-shadow:0 -20px 60px rgba(0,0,0,.25); }
+    .panel-head { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px; }
+    .panel-head h2 { margin:0; color:var(--brand); }
+    .close { border:1px solid var(--line); background:white; border-radius:7px; min-width:42px; min-height:38px; font:inherit; font-weight:900; cursor:pointer; }
+    .cart-row { display:grid; grid-template-columns:1fr auto; gap:8px; padding:10px 0; border-bottom:1px solid var(--line); }
+    .cart-actions { display:flex; align-items:center; gap:8px; }
+    .qty { border:1px solid var(--line); background:white; border-radius:7px; min-width:34px; min-height:32px; font-weight:900; cursor:pointer; }
+    .grand { margin-top:14px; padding:14px; background:#fff3d6; border:1px solid #efd198; border-radius:8px; display:flex; justify-content:space-between; font-size:20px; font-weight:950; }
+    .show-note { margin:10px 0 0; color:var(--muted); line-height:1.35; }
+    @media (max-width:640px){ .grid{grid-template-columns:1fr 1fr; gap:10px}.pic{height:118px}.info{padding:10px}.name{font-size:14px}.price{font-size:13px}.desc{font-size:12px; min-height:48px}.add{min-height:38px}.hero{min-height:260px}.topbar{margin-top:-26px}.cartbar .wrap{min-height:66px}.open-cart{padding:0 10px}.section-title h2{font-size:20px} }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap hero">
+      <div class="brand"><div class="logo">R</div><span>Restaurant Demo Menu</span></div>
+      <h1>QR menyu və ofisianta göstərilən səbət</h1>
+      <p class="lead">Müştəri yeməkləri seçir, səbətə atır, yekunda səbəti açıb ofisianta göstərir. Bu demo müştərilərə təqdim üçün hazırlanıb.</p>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="topbar">
+      <input class="search" id="search" placeholder="Yemək axtar...">
+      <div class="tabs" id="tabs"></div>
+    </div>
+  </div>
+
+  <main class="wrap">
+    <div class="section-title">
+      <h2 id="title">Bütün menyu</h2>
+      <div class="count" id="count"></div>
+    </div>
+    <div class="grid" id="grid"></div>
+  </main>
+
+  <div class="cartbar">
+    <div class="wrap">
+      <div class="cart-total"><strong id="barTotal">0 AZN</strong><span id="barCount">Səbət boşdur</span></div>
+      <button class="open-cart" id="openCart">Səbəti göstər</button>
+    </div>
+  </div>
+
+  <div class="drawer" id="drawer">
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Ofisianta göstəriləcək səbət</h2>
+        <button class="close" id="closeCart">×</button>
+      </div>
+      <div id="cartList"></div>
+      <div class="grand"><span>Cəmi</span><span id="grandTotal">0 AZN</span></div>
+      <p class="show-note">Bu ekranı ofisianta göstərin. Ofisiant seçilən yeməkləri və ümumi məbləği buradan görür.</p>
+    </div>
+  </div>
+
+  <script>
+    const cats = ["Hamısı", "Yeməklər", "Kabablar", "Salatlar", "Desertlər", "İçkilər", "Alkoqollu içkilər", "Sular"];
+    const img = id => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=900&h=620&q=80`;
+    const raw = {
+      "Yeməklər": [["Plov şah",18,"Düyü, ət, şabalıd və quru meyvələr",img("photo-1512058564366-18510be2db19")],["Dolma yarpaq",12,"Yarpaq dolması, qatıq ilə",img("photo-1604909052743-94e838986d24")],["Düşbərə",9,"Kiçik xəmirli ətli şorba",img("photo-1547592166-23ac45744acd")],["Gürzə",11,"Ətli xəmir yeməyi",img("photo-1496116218417-1a781b1c416c")],["Qutab ət ilə",7,"Nazik xəmir, ətli içlik",img("photo-1601050690597-df0568f70950")],["Toyuq çığırtması",14,"Toyuq, yumurta və tərəvəz",img("photo-1532550907401-a500c9a57435")],["Piti",16,"Noxud, qoyun əti və şorba",img("photo-1604908176997-125f25cc6f3d")],["Ləvəngi",19,"Toyuq ləvəngi, qozlu içlik",img("photo-1598103442097-8b74394b95c6")]],
+      "Kabablar": [["Lülə kabab",10,"Manqalda çəkilmiş klassik lülə",img("photo-1599487488170-d11ec9c172f0")],["Tikə kabab",13,"Qoyun əti tikələri",img("photo-1555939594-58d7cb561ad1")],["Antrikot kabab",18,"Sümüklü ət kababı",img("photo-1544025162-d76694265947")],["Toyuq kababı",9,"Marinadlı toyuq filesi",img("photo-1532550907401-a500c9a57435")],["Quzu qabırğa",17,"Manqal quzu qabırğası",img("photo-1529692236671-f1f6cf9683ba")],["Tərəvəz kababı",7,"Badımcan, pomidor, bibər",img("photo-1529694157872-4e0c0f3b238b")],["Ciyər kababı",8,"Manqalda ciyər",img("photo-1603360946369-dc9bb6258143")],["Balıq kababı",16,"Manqalda balıq",img("photo-1519708227418-c8fd9a32b7a2")]],
+      "Salatlar": [["Çoban salatı",6,"Pomidor, xiyar, göyərti",img("photo-1540420773420-3366772f4999")],["Sezar salatı",11,"Toyuq, kahı, sous, suxari",img("photo-1550304943-4f24f54ddde9")],["Paytaxt salatı",8,"Klassik mayonezli salat",img("photo-1512621776951-a57141f2eefd")],["Yunan salatı",9,"Feta, zeytun, tərəvəz",img("photo-1608032077018-c9aad9565d29")],["Mimoza salatı",8,"Balıq, yumurta, pendir",img("photo-1546069901-ba9599a7e63c")],["Manqal salatı",7,"Manqal tərəvəzləri",img("photo-1473093295043-cdd812d0e601")],["Nar salatı",10,"Nar, qoz və sous",img("photo-1505253716362-afaea1d3d1af")],["Toyuq salatı",9,"Toyuq filesi və tərəvəz",img("photo-1505576399279-565b52d4ac71")]],
+      "Desertlər": [["Paxlava",5,"Qozlu şərq şirniyyatı",img("photo-1519676867240-f03562e64548")],["Şəkərbura",4,"Fındıqlı milli desert",img("photo-1509365465985-25d11c17e812")],["Tiramisu",8,"Kremli italyan deserti",img("photo-1571877227200-a0d98ea607e9")],["Cheesecake",8,"Giləmeyvəli cheesecake",img("photo-1533134242443-d4fd215305ad")],["Şokolad fondant",9,"İsti şokolad deserti",img("photo-1606313564200-e75d5e30476c")],["Meyvə boşqabı",12,"Mövsümi meyvələr",img("photo-1490474418585-ba9bad8fd0ea")],["Dondurma",5,"Vanil, şokolad, çiyələk",img("photo-1563805042-7684c019e1cb")],["Sütlaç",6,"Südlü düyü deserti",img("photo-1606312619070-d48b4c652a52")]],
+      "İçkilər": [["Çay dəsti",8,"Armudu stəkan, limon, mürəbbə",img("photo-1544787219-7f47ccb76574")],["Türk qəhvəsi",5,"Klassik qəhvə",img("photo-1511920170033-f8396924c348")],["Americano",5,"Qara qəhvə",img("photo-1509042239860-f550ce710b93")],["Latte",7,"Südlü qəhvə",img("photo-1570968915860-54d5c301fa9f")],["Ayran",3,"Soyuq ayran",img("photo-1553530666-ba11a7da3888")],["Kompot",4,"Ev kompotu",img("photo-1621263764928-df1444c5e859")],["Təzə portağal şirəsi",8,"Fresh portağal",img("photo-1600271886742-f049cd451bba")],["Limonad",5,"Ev limonadı",img("photo-1523371054106-bbf80586c38c")]],
+      "Alkoqollu içkilər": [["Qırmızı şərab",12,"Qədəh ilə servis",img("photo-1510812431401-41d2bd2722f3")],["Ağ şərab",12,"Soyuq servis",img("photo-1506377247377-2a5b3b417ebb")],["Pivə",6,"Soyuq pivə",img("photo-1608270586620-248524c67de9")],["Konyak",14,"Qədəh ilə",img("photo-1569529465841-dfecdab7503b")],["Viski",16,"Qədəh ilə",img("photo-1527281400683-1aae777175f8")],["Vodka",10,"Soyuq servis",img("photo-1605270012917-bf157c5a9541")],["Mojito alkoqollu",12,"Nanə və lime",img("photo-1551538827-9c037cb4f32a")],["Şampan",18,"Qədəh ilə",img("photo-1547595628-c61a29f496f0")]],
+      "Sular": [["Sirab qazsız",2,"0.5L",img("photo-1523362628745-0c100150b504")],["Sirab qazlı",2,"0.5L",img("photo-1598343175492-9e7dc0e63cc6")],["Badamlı qazsız",2,"0.5L",img("photo-1548839140-29a749e1cf4d")],["Badamlı qazlı",2,"0.5L",img("photo-1564419320461-6870880221ad")],["Borjomi",5,"Mineral su",img("photo-1581006852262-e4307cf6283a")],["Buzlu su",1,"Stəkan ilə",img("photo-1502741338009-cac2772e18bc")],["Limonlu su",3,"Limon və nanə ilə",img("photo-1523677011781-c91d1bbe2f9e")],["Soda",3,"Qazlı soda",img("photo-1581636625402-29b2a704ef13")]]
+    };
+    const items = Object.entries(raw).flatMap(([category, list]) => list.map((x, i) => ({id: category + i, category, name:x[0], price:x[1], desc:x[2], img:x[3]})));
+    let active = "Hamısı"; let query = ""; const cart = new Map();
+    const tabs = document.getElementById("tabs"), grid = document.getElementById("grid"), title = document.getElementById("title"), count = document.getElementById("count");
+    tabs.innerHTML = cats.map(c => `<button class="tab ${c==="Hamısı"?"active":""}" data-cat="${c}">${c}</button>`).join("");
+    tabs.addEventListener("click", e => { if(!e.target.dataset.cat) return; active=e.target.dataset.cat; document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active", b.dataset.cat===active)); render(); });
+    document.getElementById("search").addEventListener("input", e => { query=e.target.value.toLowerCase(); render(); });
+    function filtered(){ return items.filter(i => (active==="Hamısı" || i.category===active) && (i.name.toLowerCase().includes(query) || i.desc.toLowerCase().includes(query))); }
+    function render(){ const list=filtered(); title.textContent = active==="Hamısı" ? "Bütün menyu" : active; count.textContent = `${list.length} seçim`; grid.innerHTML = list.map(i => `<article class="item"><div class="pic" style="background-image:url('${i.img}')"></div><div class="info"><div class="meta"><h3 class="name">${i.name}</h3><div class="price">${i.price} AZN</div></div><p class="desc">${i.desc}</p><button class="add" data-id="${i.id}">Səbətə at</button></div></article>`).join(""); }
+    grid.addEventListener("click", e => { const id=e.target.dataset.id; if(!id) return; cart.set(id, (cart.get(id)||0)+1); updateCart(); });
+    function updateCart(){ const rows=[...cart.entries()].map(([id, qty]) => ({...items.find(i=>i.id===id), qty})); const total=rows.reduce((s,i)=>s+i.price*i.qty,0); const qty=rows.reduce((s,i)=>s+i.qty,0); document.getElementById("barTotal").textContent=total+" AZN"; document.getElementById("barCount").textContent=qty?`${qty} seçim səbətdə`:"Səbət boşdur"; document.getElementById("grandTotal").textContent=total+" AZN"; document.getElementById("cartList").innerHTML = rows.length ? rows.map(i => `<div class="cart-row"><div><strong>${i.name}</strong><br><span>${i.price} AZN × ${i.qty}</span></div><div class="cart-actions"><button class="qty" data-minus="${i.id}">−</button><b>${i.qty}</b><button class="qty" data-plus="${i.id}">+</button></div></div>`).join("") : "<p>Səbət boşdur.</p>"; }
+    document.getElementById("openCart").onclick=()=>{document.getElementById("drawer").classList.add("open"); updateCart();};
+    document.getElementById("closeCart").onclick=()=>document.getElementById("drawer").classList.remove("open");
+    document.getElementById("cartList").addEventListener("click", e => { const plus=e.target.dataset.plus, minus=e.target.dataset.minus; if(plus) cart.set(plus,(cart.get(plus)||0)+1); if(minus){ const n=(cart.get(minus)||0)-1; n>0?cart.set(minus,n):cart.delete(minus); } updateCart(); });
+    render(); updateCart();
+  </script>
+</body>
+</html>
