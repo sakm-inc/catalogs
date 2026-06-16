@@ -93,15 +93,30 @@ class Handler(SimpleHTTPRequestHandler):
                     order["status"] = status
                     if status == "Tamamlandı" and not order.get("billed"):
                         table = str(order["table"])
-                        bill = bills.setdefault(table, {"table": table, "total": 0, "items": []})
+                        billed_at = time.strftime("%d.%m.%Y %H:%M")
+                        bill = bills.setdefault(table, {
+                            "table": table,
+                            "total": 0,
+                            "items": [],
+                            "orders": [],
+                            "firstTime": order["time"],
+                            "lastTime": order["time"],
+                        })
                         bill["total"] += order["total"]
                         bill["items"].extend(order["items"])
+                        bill["lastTime"] = order["time"]
+                        bill["orders"].append({
+                            "id": order["id"],
+                            "time": order["time"],
+                            "completedAt": billed_at,
+                            "total": order["total"],
+                        })
                         sales.insert(0, {
                             "id": order["id"],
                             "table": table,
                             "items": order["items"],
                             "total": order["total"],
-                            "time": time.strftime("%d.%m.%Y %H:%M"),
+                            "time": billed_at,
                             "date": time.strftime("%Y-%m-%d"),
                         })
                         order["billed"] = True

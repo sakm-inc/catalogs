@@ -37,6 +37,7 @@
     .bills { display:grid; grid-template-columns:repeat(auto-fit, minmax(250px, 1fr)); gap:12px; margin-bottom:24px; }
     .bill { background:white; border:2px solid #efd198; border-radius:8px; padding:14px; }
     .bill .table { font-size:22px; }
+    .bill-time { color:var(--muted); font-weight:800; margin:4px 0 10px; line-height:1.35; }
     .close-bill { margin-top:10px; background:var(--brand); color:white; }
     .print-bill { margin-top:10px; margin-right:8px; background:var(--brand2); color:#211611; }
     .sales-panel { background:white; border:1px solid var(--line); border-radius:8px; padding:14px; margin:18px 0 6px; display:grid; gap:10px; }
@@ -127,6 +128,9 @@
         hour: "2-digit",
         minute: "2-digit",
       });
+      const orderTimes = (bill.orders || []).map((order, index) => `
+        <div>${index + 1}. sifariş: ${order.time}</div>
+      `).join("");
       const rows = bill.items.map(item => `
         <tr>
           <td class="name">${item.name}</td>
@@ -168,6 +172,13 @@
               border-bottom: 1px dashed #000;
               margin-bottom: 8px;
             }
+            .times {
+              font-size: 11px;
+              line-height: 1.35;
+              padding-bottom: 8px;
+              border-bottom: 1px dashed #000;
+              margin-bottom: 8px;
+            }
             table { width: 100%; border-collapse: collapse; }
             td {
               padding: 5px 0;
@@ -197,7 +208,13 @@
         <body>
           <div class="receipt">
             <h1>Restaurant Demo</h1>
-            <div class="meta">Masa ${bill.table}<br>${createdAt}</div>
+            <div class="meta">Masa ${bill.table}<br>Çap vaxtı: ${createdAt}</div>
+            <div class="times">
+              <strong>Hesab vaxtı</strong><br>
+              İlk sifariş: ${bill.firstTime || createdAt}<br>
+              Son sifariş: ${bill.lastTime || createdAt}
+              ${orderTimes}
+            </div>
             <table>${rows}</table>
             <div class="total"><span>Cəmi</span><span>${bill.total} AZN</span></div>
             <div class="thanks">Təşəkkür edirik</div>
@@ -260,6 +277,10 @@
       billsEl.innerHTML = billList.length ? billList.map(bill => `
         <article class="bill">
           <div class="table">Masa ${bill.table}</div>
+          <div class="bill-time">
+            İlk sifariş: ${bill.firstTime || "-"}<br>
+            Son sifariş: ${bill.lastTime || "-"}
+          </div>
           <ul class="items">
             ${bill.items.map(item => `<li><span>${item.name} × ${item.qty}</span><strong>${item.price * item.qty} AZN</strong></li>`).join("")}
           </ul>
