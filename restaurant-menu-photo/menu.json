@@ -1,0 +1,506 @@
+[
+  {
+    "id": "Yeməklər-0-plov-şah",
+    "category": "Yeməklər",
+    "name": "Plov şah",
+    "price": 18,
+    "desc": "Düyü, ət, şabalıd və quru meyvələr",
+    "img": "https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "Yeməklər-1-dolma-yarpaq",
+    "category": "Yeməklər",
+    "name": "Dolma yarpaq",
+    "price": 12,
+    "desc": "Yarpaq dolması, qatıq ilə",
+    "img": "https://images.unsplash.com/photo-1604909052743-94e838986d24?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "Yeməklər-2-düşbərə",
+    "category": "Yeməklər",
+    "name": "Düşbərə",
+    "price": 9,
+    "desc": "Kiçik xəmirli ətli şorba",
+    "img": "https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "Yeməklər-3-gürzə",
+    "category": "Yeməklər",
+    "name": "Gürzə",
+    "price": 11,
+    "desc": "Ətli xəmir yeməyi",
+    "img": "https://images.unsplash.com/photo-1496116218417-1a781b1c416c?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "Yeməklər-4-qutab-ət-ilə",
+    "category": "Yeməklər",
+    "name": "Qutab ət ilə",
+    "price": 7,
+    "desc": "Nazik xəmir, ətli içlik",
+    "img": "https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "Yeməklər-5-toyuq-çığırtması",
+    "category": "Yeməklər",
+    "name": "Toyuq çığırtması",
+    "price": 14,
+    "desc": "Toyuq, yumurta və tərəvəz",
+    "img": "https://images.unsplash.com/photo-1532550907401-a500c9a57435?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "Yeməklər-6-piti",
+    "category": "Yeməklər",
+    "name": "Piti",
+    "price": 16,
+    "desc": "Noxud, qoyun əti və şorba",
+    "img": "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "Yeməklər-7-ləvəngi",
+    "category": "Yeməklər",
+    "name": "Ləvəngi",
+    "price": 19,
+    "desc": "Toyuq ləvəngi, qozlu içlik",
+    "img": "https://images.unsplash.com/photo-1598103442097-8b74394b95c6?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "Kabablar-0-lülə-kabab",
+    "category": "Kabablar",
+    "name": "Lülə kabab",
+    "price": 10,
+    "desc": "Manqalda çəkilmiş klassik lülə",
+    "img": "https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "Kabablar-1-tikə-kabab",
+    "category": "Kabablar",
+    "name": "Tikə kabab",
+    "price": 13,
+    "desc": "Qoyun əti tikələri",
+    "img": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "Kabablar-2-antrikot-kabab",
+    "category": "Kabablar",
+    "name": "Antrikot kabab",
+    "price": 18,
+    "desc": "Sümüklü ət kababı",
+    "img": "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "Kabablar-3-toyuq-kababı",
+    "category": "Kabablar",
+    "name": "Toyuq kababı",
+    "price": 9,
+    "desc": "Marinadlı toyuq filesi",
+    "img": "https://images.unsplash.com/photo-1532550907401-a500c9a57435?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "Kabablar-4-quzu-qabırğa",
+    "category": "Kabablar",
+    "name": "Quzu qabırğa",
+    "price": 17,
+    "desc": "Manqal quzu qabırğası",
+    "img": "https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "Kabablar-5-tərəvəz-kababı",
+    "category": "Kabablar",
+    "name": "Tərəvəz kababı",
+    "price": 7,
+    "desc": "Badımcan, pomidor, bibər",
+    "img": "https://images.unsplash.com/photo-1529694157872-4e0c0f3b238b?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "Kabablar-6-ciyər-kababı",
+    "category": "Kabablar",
+    "name": "Ciyər kababı",
+    "price": 8,
+    "desc": "Manqalda ciyər",
+    "img": "https://images.unsplash.com/photo-1603360946369-dc9bb6258143?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "Kabablar-7-balıq-kababı",
+    "category": "Kabablar",
+    "name": "Balıq kababı",
+    "price": 16,
+    "desc": "Manqalda balıq",
+    "img": "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "Salatlar-0-çoban-salatı",
+    "category": "Salatlar",
+    "name": "Çoban salatı",
+    "price": 6,
+    "desc": "Pomidor, xiyar, göyərti",
+    "img": "https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "Salatlar-1-sezar-salatı",
+    "category": "Salatlar",
+    "name": "Sezar salatı",
+    "price": 11,
+    "desc": "Toyuq, kahı, sous, suxari",
+    "img": "https://images.unsplash.com/photo-1550304943-4f24f54ddde9?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "Salatlar-2-paytaxt-salatı",
+    "category": "Salatlar",
+    "name": "Paytaxt salatı",
+    "price": 8,
+    "desc": "Klassik mayonezli salat",
+    "img": "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "Salatlar-3-yunan-salatı",
+    "category": "Salatlar",
+    "name": "Yunan salatı",
+    "price": 9,
+    "desc": "Feta, zeytun, tərəvəz",
+    "img": "https://images.unsplash.com/photo-1608032077018-c9aad9565d29?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "Salatlar-4-mimoza-salatı",
+    "category": "Salatlar",
+    "name": "Mimoza salatı",
+    "price": 8,
+    "desc": "Balıq, yumurta, pendir",
+    "img": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "Salatlar-5-manqal-salatı",
+    "category": "Salatlar",
+    "name": "Manqal salatı",
+    "price": 7,
+    "desc": "Manqal tərəvəzləri",
+    "img": "https://images.unsplash.com/photo-1473093295043-cdd812d0e601?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "Salatlar-6-nar-salatı",
+    "category": "Salatlar",
+    "name": "Nar salatı",
+    "price": 10,
+    "desc": "Nar, qoz və sous",
+    "img": "https://images.unsplash.com/photo-1505253716362-afaea1d3d1af?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "Salatlar-7-toyuq-salatı",
+    "category": "Salatlar",
+    "name": "Toyuq salatı",
+    "price": 9,
+    "desc": "Toyuq filesi və tərəvəz",
+    "img": "https://images.unsplash.com/photo-1505576399279-565b52d4ac71?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "Desertlər-0-paxlava",
+    "category": "Desertlər",
+    "name": "Paxlava",
+    "price": 5,
+    "desc": "Qozlu şərq şirniyyatı",
+    "img": "https://images.unsplash.com/photo-1519676867240-f03562e64548?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "Desertlər-1-şəkərbura",
+    "category": "Desertlər",
+    "name": "Şəkərbura",
+    "price": 4,
+    "desc": "Fındıqlı milli desert",
+    "img": "https://images.unsplash.com/photo-1509365465985-25d11c17e812?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "Desertlər-2-tiramisu",
+    "category": "Desertlər",
+    "name": "Tiramisu",
+    "price": 8,
+    "desc": "Kremli italyan deserti",
+    "img": "https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "Desertlər-3-cheesecake",
+    "category": "Desertlər",
+    "name": "Cheesecake",
+    "price": 8,
+    "desc": "Giləmeyvəli cheesecake",
+    "img": "https://images.unsplash.com/photo-1533134242443-d4fd215305ad?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "Desertlər-4-şokolad-fondant",
+    "category": "Desertlər",
+    "name": "Şokolad fondant",
+    "price": 9,
+    "desc": "İsti şokolad deserti",
+    "img": "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "Desertlər-5-meyvə-boşqabı",
+    "category": "Desertlər",
+    "name": "Meyvə boşqabı",
+    "price": 12,
+    "desc": "Mövsümi meyvələr",
+    "img": "https://images.unsplash.com/photo-1490474418585-ba9bad8fd0ea?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "Desertlər-6-dondurma",
+    "category": "Desertlər",
+    "name": "Dondurma",
+    "price": 5,
+    "desc": "Vanil, şokolad, çiyələk",
+    "img": "https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "Desertlər-7-sütlaç",
+    "category": "Desertlər",
+    "name": "Sütlaç",
+    "price": 6,
+    "desc": "Südlü düyü deserti",
+    "img": "https://images.unsplash.com/photo-1606312619070-d48b4c652a52?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "İçkilər-0-çay-dəsti",
+    "category": "İçkilər",
+    "name": "Çay dəsti",
+    "price": 8,
+    "desc": "Armudu stəkan, limon, mürəbbə",
+    "img": "https://images.unsplash.com/photo-1544787219-7f47ccb76574?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "İçkilər-1-türk-qəhvəsi",
+    "category": "İçkilər",
+    "name": "Türk qəhvəsi",
+    "price": 5,
+    "desc": "Klassik qəhvə",
+    "img": "https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "İçkilər-2-americano",
+    "category": "İçkilər",
+    "name": "Americano",
+    "price": 5,
+    "desc": "Qara qəhvə",
+    "img": "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "İçkilər-3-latte",
+    "category": "İçkilər",
+    "name": "Latte",
+    "price": 7,
+    "desc": "Südlü qəhvə",
+    "img": "https://images.unsplash.com/photo-1570968915860-54d5c301fa9f?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "İçkilər-4-ayran",
+    "category": "İçkilər",
+    "name": "Ayran",
+    "price": 3,
+    "desc": "Soyuq ayran",
+    "img": "https://images.unsplash.com/photo-1553530666-ba11a7da3888?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "İçkilər-5-kompot",
+    "category": "İçkilər",
+    "name": "Kompot",
+    "price": 4,
+    "desc": "Ev kompotu",
+    "img": "https://images.unsplash.com/photo-1621263764928-df1444c5e859?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "İçkilər-6-təzə-portağal-şirəsi",
+    "category": "İçkilər",
+    "name": "Təzə portağal şirəsi",
+    "price": 8,
+    "desc": "Fresh portağal",
+    "img": "https://images.unsplash.com/photo-1600271886742-f049cd451bba?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "İçkilər-7-limonad",
+    "category": "İçkilər",
+    "name": "Limonad",
+    "price": 5,
+    "desc": "Ev limonadı",
+    "img": "https://images.unsplash.com/photo-1523371054106-bbf80586c38c?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "Alkoqollu içkilər-0-qırmızı-şərab",
+    "category": "Alkoqollu içkilər",
+    "name": "Qırmızı şərab",
+    "price": 12,
+    "desc": "Qədəh ilə servis",
+    "img": "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "Alkoqollu içkilər-1-ağ-şərab",
+    "category": "Alkoqollu içkilər",
+    "name": "Ağ şərab",
+    "price": 12,
+    "desc": "Soyuq servis",
+    "img": "https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "Alkoqollu içkilər-2-pivə",
+    "category": "Alkoqollu içkilər",
+    "name": "Pivə",
+    "price": 6,
+    "desc": "Soyuq pivə",
+    "img": "https://images.unsplash.com/photo-1608270586620-248524c67de9?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "Alkoqollu içkilər-3-konyak",
+    "category": "Alkoqollu içkilər",
+    "name": "Konyak",
+    "price": 14,
+    "desc": "Qədəh ilə",
+    "img": "https://images.unsplash.com/photo-1569529465841-dfecdab7503b?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "Alkoqollu içkilər-4-viski",
+    "category": "Alkoqollu içkilər",
+    "name": "Viski",
+    "price": 16,
+    "desc": "Qədəh ilə",
+    "img": "https://images.unsplash.com/photo-1527281400683-1aae777175f8?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "Alkoqollu içkilər-5-vodka",
+    "category": "Alkoqollu içkilər",
+    "name": "Vodka",
+    "price": 10,
+    "desc": "Soyuq servis",
+    "img": "https://images.unsplash.com/photo-1605270012917-bf157c5a9541?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "Alkoqollu içkilər-6-mojito-alkoqollu",
+    "category": "Alkoqollu içkilər",
+    "name": "Mojito alkoqollu",
+    "price": 12,
+    "desc": "Nanə və lime",
+    "img": "https://images.unsplash.com/photo-1551538827-9c037cb4f32a?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "Alkoqollu içkilər-7-şampan",
+    "category": "Alkoqollu içkilər",
+    "name": "Şampan",
+    "price": 18,
+    "desc": "Qədəh ilə",
+    "img": "https://images.unsplash.com/photo-1547595628-c61a29f496f0?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "Sular-0-sirab-qazsız",
+    "category": "Sular",
+    "name": "Sirab qazsız",
+    "price": 2,
+    "desc": "0.5L",
+    "img": "https://images.unsplash.com/photo-1523362628745-0c100150b504?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "Sular-1-sirab-qazlı",
+    "category": "Sular",
+    "name": "Sirab qazlı",
+    "price": 2,
+    "desc": "0.5L",
+    "img": "https://images.unsplash.com/photo-1598343175492-9e7dc0e63cc6?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "Sular-2-badamlı-qazsız",
+    "category": "Sular",
+    "name": "Badamlı qazsız",
+    "price": 2,
+    "desc": "0.5L",
+    "img": "https://images.unsplash.com/photo-1548839140-29a749e1cf4d?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "Sular-3-badamlı-qazlı",
+    "category": "Sular",
+    "name": "Badamlı qazlı",
+    "price": 2,
+    "desc": "0.5L",
+    "img": "https://images.unsplash.com/photo-1564419320461-6870880221ad?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "Sular-4-borjomi",
+    "category": "Sular",
+    "name": "Borjomi",
+    "price": 5,
+    "desc": "Mineral su",
+    "img": "https://images.unsplash.com/photo-1581006852262-e4307cf6283a?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "Sular-5-buzlu-su",
+    "category": "Sular",
+    "name": "Buzlu su",
+    "price": 1,
+    "desc": "Stəkan ilə",
+    "img": "https://images.unsplash.com/photo-1502741338009-cac2772e18bc?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "Sular-6-limonlu-su",
+    "category": "Sular",
+    "name": "Limonlu su",
+    "price": 3,
+    "desc": "Limon və nanə ilə",
+    "img": "https://images.unsplash.com/photo-1523677011781-c91d1bbe2f9e?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  },
+  {
+    "id": "Sular-7-soda",
+    "category": "Sular",
+    "name": "Soda",
+    "price": 3,
+    "desc": "Qazlı soda",
+    "img": "https://images.unsplash.com/photo-1581636625402-29b2a704ef13?auto=format&fit=crop&w=900&h=620&q=80",
+    "active": true
+  }
+]

@@ -111,7 +111,7 @@
   </div>
 
   <script>
-    const cats = ["Hamısı", "Yeməklər", "Kabablar", "Salatlar", "Desertlər", "İçkilər", "Alkoqollu içkilər", "Sular"];
+    let cats = ["Hamısı", "Yeməklər", "Kabablar", "Salatlar", "Desertlər", "İçkilər", "Alkoqollu içkilər", "Sular"];
     const img = id => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=900&h=620&q=80`;
     const raw = {
       "Yeməklər": [["Plov şah",18,"Düyü, ət, şabalıd və quru meyvələr",img("photo-1512058564366-18510be2db19")],["Dolma yarpaq",12,"Yarpaq dolması, qatıq ilə",img("photo-1604909052743-94e838986d24")],["Düşbərə",9,"Kiçik xəmirli ətli şorba",img("photo-1547592166-23ac45744acd")],["Gürzə",11,"Ətli xəmir yeməyi",img("photo-1496116218417-1a781b1c416c")],["Qutab ət ilə",7,"Nazik xəmir, ətli içlik",img("photo-1601050690597-df0568f70950")],["Toyuq çığırtması",14,"Toyuq, yumurta və tərəvəz",img("photo-1532550907401-a500c9a57435")],["Piti",16,"Noxud, qoyun əti və şorba",img("photo-1604908176997-125f25cc6f3d")],["Ləvəngi",19,"Toyuq ləvəngi, qozlu içlik",img("photo-1598103442097-8b74394b95c6")]],
@@ -122,23 +122,40 @@
       "Alkoqollu içkilər": [["Qırmızı şərab",12,"Qədəh ilə servis",img("photo-1510812431401-41d2bd2722f3")],["Ağ şərab",12,"Soyuq servis",img("photo-1506377247377-2a5b3b417ebb")],["Pivə",6,"Soyuq pivə",img("photo-1608270586620-248524c67de9")],["Konyak",14,"Qədəh ilə",img("photo-1569529465841-dfecdab7503b")],["Viski",16,"Qədəh ilə",img("photo-1527281400683-1aae777175f8")],["Vodka",10,"Soyuq servis",img("photo-1605270012917-bf157c5a9541")],["Mojito alkoqollu",12,"Nanə və lime",img("photo-1551538827-9c037cb4f32a")],["Şampan",18,"Qədəh ilə",img("photo-1547595628-c61a29f496f0")]],
       "Sular": [["Sirab qazsız",2,"0.5L",img("photo-1523362628745-0c100150b504")],["Sirab qazlı",2,"0.5L",img("photo-1598343175492-9e7dc0e63cc6")],["Badamlı qazsız",2,"0.5L",img("photo-1548839140-29a749e1cf4d")],["Badamlı qazlı",2,"0.5L",img("photo-1564419320461-6870880221ad")],["Borjomi",5,"Mineral su",img("photo-1581006852262-e4307cf6283a")],["Buzlu su",1,"Stəkan ilə",img("photo-1502741338009-cac2772e18bc")],["Limonlu su",3,"Limon və nanə ilə",img("photo-1523677011781-c91d1bbe2f9e")],["Soda",3,"Qazlı soda",img("photo-1581636625402-29b2a704ef13")]]
     };
-    const items = Object.entries(raw).flatMap(([category, list]) => list.map((x, i) => ({id: category + i, category, name:x[0], price:x[1], desc:x[2], img:x[3]})));
+    let items = Object.entries(raw).flatMap(([category, list]) => list.map((x, i) => ({id: category + i, category, name:x[0], price:x[1], desc:x[2], img:x[3], active:true})));
     let active = "Hamısı"; let query = ""; const cart = new Map();
     const tabs = document.getElementById("tabs"), grid = document.getElementById("grid"), title = document.getElementById("title"), count = document.getElementById("count");
-    tabs.innerHTML = cats.map(c => `<button class="tab ${c==="Hamısı"?"active":""}" data-cat="${c}">${c}</button>`).join("");
+    function renderTabs(){ tabs.innerHTML = cats.map(c => `<button class="tab ${c===active?"active":""}" data-cat="${c}">${c}</button>`).join(""); }
+    renderTabs();
     tabs.addEventListener("click", e => { if(!e.target.dataset.cat) return; active=e.target.dataset.cat; document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active", b.dataset.cat===active)); render(); });
     document.getElementById("search").addEventListener("input", e => { query=e.target.value.toLowerCase(); render(); });
+    async function loadMenu(){
+      try {
+        const res = await fetch("/api/menu");
+        if(!res.ok) throw new Error("menu failed");
+        const data = await res.json();
+        items = data.filter(i => i.active !== false);
+        cats = ["Hamısı", ...new Set(items.map(i => i.category))];
+        if(!cats.includes(active)) active = "Hamısı";
+        renderTabs();
+        render();
+        updateCart();
+      } catch(e) {
+        render();
+        updateCart();
+      }
+    }
     function filtered(){ return items.filter(i => (active==="Hamısı" || i.category===active) && (i.name.toLowerCase().includes(query) || i.desc.toLowerCase().includes(query))); }
     function render(){ const list=filtered(); title.textContent = active==="Hamısı" ? "Bütün menyu" : active; count.textContent = `${list.length} seçim`; grid.innerHTML = list.map(i => `<article class="item"><div class="pic" style="background-image:url('${i.img}')"></div><div class="info"><div class="meta"><h3 class="name">${i.name}</h3><div class="price">${i.price} AZN</div></div><p class="desc">${i.desc}</p><button class="add" data-id="${i.id}">Səbətə at</button></div></article>`).join(""); }
     grid.addEventListener("click", e => { const id=e.target.dataset.id; if(!id) return; cart.set(id, (cart.get(id)||0)+1); updateCart(); });
-    function cartRows(){ return [...cart.entries()].map(([id, qty]) => ({...items.find(i=>i.id===id), qty})); }
+    function cartRows(){ return [...cart.entries()].map(([id, qty]) => { const item = items.find(i=>i.id===id); return item ? {...item, qty} : null; }).filter(Boolean); }
     function updateCart(){ const rows=cartRows(); const total=rows.reduce((s,i)=>s+i.price*i.qty,0); const qty=rows.reduce((s,i)=>s+i.qty,0); document.getElementById("barTotal").textContent=total+" AZN"; document.getElementById("barCount").textContent=qty?`${qty} seçim səbətdə`:"Səbət boşdur"; document.getElementById("grandTotal").textContent=total+" AZN"; document.getElementById("cartList").innerHTML = rows.length ? rows.map(i => `<div class="cart-row"><div><strong>${i.name}</strong><br><span>${i.price} AZN × ${i.qty}</span></div><div class="cart-actions"><button class="qty" data-minus="${i.id}">−</button><b>${i.qty}</b><button class="qty" data-plus="${i.id}">+</button></div></div>`).join("") : "<p>Səbət boşdur.</p>"; }
     async function saveOrder(){ const rows=cartRows(); const msg=document.getElementById("orderMessage"); const table=document.getElementById("tableNo").value.trim(); if(!rows.length){ msg.textContent="Səbət boşdur."; return; } if(!table){ msg.textContent="Masa nömrəsini yazın."; return; } const total=rows.reduce((s,i)=>s+i.price*i.qty,0); const payload={table,total,items:rows.map(i=>({name:i.name, qty:i.qty, price:i.price}))}; try{ const res=await fetch("/api/orders",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)}); if(!res.ok) throw new Error("order failed"); cart.clear(); updateCart(); msg.textContent=`Masa ${table} sifarişi admin panelə düşdü.`; } catch(e){ msg.textContent="Sifariş göndərilmədi. Yenidən yoxlayın."; } }
     document.getElementById("openCart").onclick=()=>{document.getElementById("drawer").classList.add("open"); updateCart();};
     document.getElementById("closeCart").onclick=()=>document.getElementById("drawer").classList.remove("open");
     document.getElementById("cartList").addEventListener("click", e => { const plus=e.target.dataset.plus, minus=e.target.dataset.minus; if(plus) cart.set(plus,(cart.get(plus)||0)+1); if(minus){ const n=(cart.get(minus)||0)-1; n>0?cart.set(minus,n):cart.delete(minus); } updateCart(); });
     document.getElementById("sendOrder").onclick=saveOrder;
-    render(); updateCart();
+    loadMenu();
   </script>
 </body>
 </html>

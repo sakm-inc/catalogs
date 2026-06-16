@@ -3,11 +3,27 @@ from urllib.parse import unquote, urlparse
 import json
 import os
 import time
+from pathlib import Path
 
 orders = []
 bills = {}
 sales = []
 ADMIN_PASSWORD = "1234"
+MENU_FILE = Path(__file__).parent / "restaurant-menu-photo" / "menu.json"
+
+
+def load_menu():
+    if not MENU_FILE.exists():
+        return []
+    return json.loads(MENU_FILE.read_text(encoding="utf-8"))
+
+
+def save_menu(items):
+    MENU_FILE.write_text(json.dumps(items, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def has_admin_password(value):
+    return value == ADMIN_PASSWORD
 
 
 class Handler(SimpleHTTPRequestHandler):
@@ -33,17 +49,21 @@ class Handler(SimpleHTTPRequestHandler):
         self.api_json({"ok": True})
 
     def do_GET(self):
-        path = urlparse(self.path).path
+        parsed = urlparse(self.path)
+        path = parsed.path
+        query = parsed.query
         if path == "/api/orders":
             self.api_json(orders)
             return
         if path == "/api/bills":
             self.api_json(list(bills.values()))
             return
+        if path == "/api/menu":
+            self.api_json(load_menu())
+            return
         if path == "/api/sales":
-            query = urlparse(self.path).query
             params = dict(pair.split("=", 1) for pair in query.split("&") if "=" in pair)
-            if params.get("password") != ADMIN_PASSWORD:
+            if not has_admin_password(params.get("password")):
                 self.api_json({"error": "wrong password"}, 403)
                 return
             by_date = {}
@@ -79,6 +99,25 @@ class Handler(SimpleHTTPRequestHandler):
             }
             orders.insert(0, order)
             self.api_json(order, 201)
+            return
+        if path == "/api/menu":
+            data = self.read_body()
+            if not has_admin_password(data.get("password")):
+                self.api_json({"error": "wrong password"}, 403)
+                return
+            items = load_menu()
+            item = {
+                "id": str(int(time.time() * 1000)),
+                "category": str(data.get("category", "")).strip(),
+                "name": str(data.get("name", "")).strip(),
+                "price": float(data.get("price", 0)),
+                "desc": str(data.get("desc", "")).strip(),
+                "img": str(data.get("img", "")).strip(),
+                "active": bool(data.get("active", True)),
+            }
+            items.append(item)
+            save_menu(items)
+            self.api_json(item, 201)
             return
         self.api_json({"error": "not found"}, 404)
 
@@ -122,6 +161,25 @@ class Handler(SimpleHTTPRequestHandler):
                         order["billed"] = True
                     self.api_json(order)
                     return
+        if path.startswith("/api/menu/"):
+            item_id = unquote(path.rsplit("/", 1)[-1])
+            data = self.read_body()
+            if not has_admin_password(data.get("password")):
+                self.api_json({"error": "wrong password"}, 403)
+                return
+            items = load_menu()
+            for item in items:
+                if str(item["id"]) == item_id:
+                    for key in ("category", "name", "desc", "img"):
+                        if key in data:
+                            item[key] = str(data.get(key, "")).strip()
+                    if "price" in data:
+                        item["price"] = float(data.get("price") or 0)
+                    if "active" in data:
+                        item["active"] = bool(data.get("active"))
+                    save_menu(items)
+                    self.api_json(item)
+                    return
         self.api_json({"error": "not found"}, 404)
 
     def do_DELETE(self):
@@ -129,6 +187,17 @@ class Handler(SimpleHTTPRequestHandler):
         if path.startswith("/api/bills/"):
             table = unquote(path.rsplit("/", 1)[-1])
             bills.pop(table, None)
+            self.api_json({"ok": True})
+            return
+        if path.startswith("/api/menu/"):
+            parsed = urlparse(self.path)
+            params = dict(pair.split("=", 1) for pair in parsed.query.split("&") if "=" in pair)
+            if not has_admin_password(params.get("password")):
+                self.api_json({"error": "wrong password"}, 403)
+                return
+            item_id = unquote(path.rsplit("/", 1)[-1])
+            items = [item for item in load_menu() if str(item["id"]) != item_id]
+            save_menu(items)
             self.api_json({"ok": True})
             return
         if path == "/api/orders":
