@@ -440,11 +440,18 @@
       }
 
       .cta-phone {
-        white-space: nowrap;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 0 8px;
         max-width: 100%;
         font-size: clamp(18px, 4.6vw, 38px);
         line-height: 1.15;
         letter-spacing: 0;
+      }
+
+      .cta-number {
+        white-space: nowrap;
       }
 
       .cta-inner span {
@@ -508,7 +515,16 @@
 
         .cta-phone {
           width: 100%;
-          font-size: clamp(13px, 3.75vw, 18px);
+          font-size: clamp(14px, 3.8vw, 18px);
+        }
+
+        .cta-phone span:first-child {
+          width: 100%;
+        }
+
+        .cta-number {
+          display: block;
+          font-size: clamp(17px, 4.6vw, 21px);
         }
 
         .application-panel {
@@ -675,7 +691,7 @@
     <section class="cta-band">
       <div class="wrap cta-inner">
         <div>
-          <strong class="cta-phone">Sifariş üçün: +994 50 500 75 56</strong>
+          <strong class="cta-phone"><span>Sifariş üçün:</span><span class="cta-number">+994 50 500 75 56</span></strong>
           <span>Parlaq Yuva ev təmizliyi kataloqu | parlagyuva@gmail.com</span>
         </div>
         <a class="button secondary" href="https://wa.me/994505007556?text=Salam%2C%20Parlaq%20Yuva%20xidm%C9%99ti%20%C3%BC%C3%A7%C3%BCn%20sifari%C5%9F%20verm%C9%99k%20ist%C9%99yir%C9%99m">Sifariş et</a>
