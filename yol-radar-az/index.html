@@ -90,6 +90,37 @@
       font-weight: 650;
     }
     .result small { display: block; margin-top: 2px; color: var(--muted); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .navcard {
+      position: fixed;
+      left: 10px;
+      right: 10px;
+      top: 150px;
+      z-index: 4;
+      display: none;
+      grid-template-columns: auto 1fr;
+      gap: 10px;
+      align-items: center;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(255,255,255,.94);
+      backdrop-filter: blur(14px);
+      box-shadow: var(--shadow);
+    }
+    .navcard.active { display: grid; }
+    .arrow {
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      border-radius: 13px;
+      background: #101820;
+      color: #fff;
+      font-size: 24px;
+      font-weight: 900;
+    }
+    .navtext b { display: block; font-size: 15px; line-height: 1.15; }
+    .navtext span { display: block; margin-top: 3px; color: var(--muted); font-size: 12px; }
     .controls {
       position: fixed; left: 10px; right: 10px; bottom: 12px; z-index: 5;
       border: 1px solid var(--line); border-radius: 16px; background: var(--panel);
@@ -133,6 +164,7 @@
     }
     @media (min-width: 720px) {
       .topbar { left: 24px; right: auto; width: 420px; }
+      .navcard { left: 24px; right: auto; width: 420px; }
       .controls { left: 24px; right: auto; width: 420px; }
     }
   </style>
@@ -170,6 +202,13 @@
     </div>
     <div class="status" id="status">GPS üçün icazə ver. Xəbərdarlıq əlavə etmək üçün xəritədə olduğun yeri götürür.</div>
   </div>
+  <div class="navcard" id="navCard">
+    <div class="arrow" id="navArrow">↑</div>
+    <div class="navtext">
+      <b id="navMain">Marşrut hazırdır</b>
+      <span id="navSub">Hərəkət başlayanda növbəti göstəriş görünəcək</span>
+    </div>
+  </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
@@ -183,6 +222,10 @@
     };
     const statusEl = document.getElementById("status");
     const speedEl = document.getElementById("speed");
+    const navCard = document.getElementById("navCard");
+    const navArrow = document.getElementById("navArrow");
+    const navMain = document.getElementById("navMain");
+    const navSub = document.getElementById("navSub");
     const map = L.map("map", { zoomControl: false }).setView(BAKU, 12);
     L.control.zoom({ position: "topright" }).addTo(map);
     const roadLayer = L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
@@ -201,9 +244,72 @@
     let destinationMarker = null;
     let routeLine = null;
     let satelliteMode = false;
+    let routeSteps = [];
+    let followMode = false;
+    let lastInstruction = "";
     const markers = new Map();
 
     function setStatus(text) { statusEl.textContent = text; }
+    function distanceMeters(a, b) {
+      const R = 6371000;
+      const dLat = (b.lat - a.lat) * Math.PI / 180;
+      const dLng = (b.lng - a.lng) * Math.PI / 180;
+      const lat1 = a.lat * Math.PI / 180;
+      const lat2 = b.lat * Math.PI / 180;
+      const x = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+      return 2 * R * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
+    }
+    function formatDistance(meters) {
+      if (meters < 80) return "indi";
+      if (meters < 950) return `${Math.round(meters / 10) * 10} metr sonra`;
+      return `${(meters / 1000).toFixed(meters > 9500 ? 0 : 1)} km sonra`;
+    }
+    function maneuverArrow(type, modifier) {
+      if (type === "arrive") return "✓";
+      if (modifier && modifier.includes("right")) return "↱";
+      if (modifier && modifier.includes("left")) return "↰";
+      if (modifier && modifier.includes("uturn")) return "↺";
+      if (type === "roundabout" || type === "rotary") return "⟳";
+      return "↑";
+    }
+    function maneuverText(step) {
+      const maneuver = step.maneuver || {};
+      const type = maneuver.type || "";
+      const modifier = maneuver.modifier || "";
+      const road = step.name ? ` (${step.name})` : "";
+      if (type === "arrive") return "Çatdın";
+      if (type === "depart") return `Düz get${road}`;
+      if (type === "roundabout" || type === "rotary") return `Dairəyə daxil ol${road}`;
+      if (modifier.includes("right")) return `Sağa dön${road}`;
+      if (modifier.includes("left")) return `Sola dön${road}`;
+      if (modifier.includes("straight")) return `Düz davam et${road}`;
+      if (modifier.includes("uturn")) return "Geri dön";
+      return `Davam et${road}`;
+    }
+    function updateNavigationInstruction() {
+      if (!current || !routeSteps.length) return;
+      let bestStep = routeSteps[0];
+      let bestDistance = Infinity;
+      for (const step of routeSteps) {
+        const meters = distanceMeters(current, step.location);
+        if (meters < bestDistance) {
+          bestDistance = meters;
+          bestStep = step;
+        }
+      }
+      const main = `${formatDistance(bestDistance)} ${maneuverText(bestStep)}`;
+      navCard.classList.add("active");
+      navArrow.textContent = maneuverArrow(bestStep.type, bestStep.modifier);
+      navMain.textContent = main;
+      navSub.textContent = bestStep.name ? `Yol: ${bestStep.name}` : "Xəritə sənin yerini izləyir";
+      if (main !== lastInstruction && bestDistance < 250) {
+        lastInstruction = main;
+        if ("speechSynthesis" in window) {
+          speechSynthesis.cancel();
+          speechSynthesis.speak(new SpeechSynthesisUtterance(main));
+        }
+      }
+    }
     function markerIcon(type) {
       const item = labels[type] || labels.danger;
       return L.divIcon({
@@ -338,7 +444,7 @@
         setStatus("Marşrut üçün əvvəl GPS yerini tapmaq lazımdır.");
         return;
       }
-      const url = `https://router.project-osrm.org/route/v1/driving/${current.lng},${current.lat};${destination.lng},${destination.lat}?overview=full&geometries=geojson`;
+      const url = `https://router.project-osrm.org/route/v1/driving/${current.lng},${current.lat};${destination.lng},${destination.lat}?overview=full&geometries=geojson&steps=true`;
       const response = await fetch(url);
       const data = await response.json();
       if (!data.routes || !data.routes.length) {
@@ -349,10 +455,19 @@
       const coords = route.geometry.coordinates.map(point => [point[1], point[0]]);
       if (routeLine) routeLine.remove();
       routeLine = L.polyline(coords, { color: "#33d17a", weight: 6, opacity: .86 }).addTo(map);
-      map.fitBounds(routeLine.getBounds(), { padding: [42, 42] });
+      routeSteps = (route.legs?.[0]?.steps || []).map(step => ({
+        name: step.name,
+        type: step.maneuver?.type || "",
+        modifier: step.maneuver?.modifier || "",
+        location: { lng: step.maneuver.location[0], lat: step.maneuver.location[1] },
+        maneuver: step.maneuver
+      }));
+      followMode = true;
+      map.setView([current.lat, current.lng], 17);
       const km = (route.distance / 1000).toFixed(route.distance > 10000 ? 0 : 1);
       const min = Math.round(route.duration / 60);
       setStatus(`${destination.name.split(",")[0]}: ${km} km, təxminən ${min} dəq.`);
+      updateNavigationInstruction();
     }
     async function searchDestination(event) {
       event.preventDefault();
@@ -403,7 +518,12 @@
         userCircle.setLatLng([latitude, longitude]);
         userCircle.setRadius(accuracy || 30);
       }
-      setStatus("GPS aktivdir. Sürət və yer xəritədə görünür.");
+      if (followMode) {
+        map.setView([latitude, longitude], Math.max(map.getZoom(), 17), { animate: true });
+        updateNavigationInstruction();
+      } else {
+        setStatus("GPS aktivdir. Sürət və yer xəritədə görünür.");
+      }
     }
     function startGps() {
       if (!navigator.geolocation) {
@@ -440,7 +560,10 @@
       }
     });
     document.getElementById("locate").addEventListener("click", () => {
-      if (current) map.setView([current.lat, current.lng], 16);
+      if (current) {
+        followMode = true;
+        map.setView([current.lat, current.lng], 17);
+      }
       else startGps();
     });
     loadAlerts().forEach(renderAlert);
