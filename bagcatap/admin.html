@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="az">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BağçaTap Admin</title>
+  <style>
+    :root { --green:#19a66a; --dark:#15201b; --line:#dce8df; --muted:#6a786f; --bg:#f7fbf8; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:Arial, sans-serif; background:var(--bg); color:var(--dark); }
+    header { position:sticky; top:0; z-index:5; background:#fff; border-bottom:1px solid var(--line); padding:14px; }
+    h1 { margin:0; font-size:22px; }
+    p { margin:4px 0 0; color:var(--muted); }
+    main { max-width:980px; margin:0 auto; padding:14px; display:grid; gap:14px; }
+    .card { background:#fff; border:1px solid var(--line); border-radius:10px; padding:14px; box-shadow:0 10px 24px rgba(31,52,39,.08); }
+    .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+    label { display:grid; gap:5px; color:#405047; font-weight:800; font-size:13px; }
+    input, textarea, select { width:100%; border:1px solid var(--line); border-radius:8px; min-height:42px; padding:9px 10px; font:inherit; background:#fff; }
+    textarea { min-height:84px; resize:vertical; }
+    .full { grid-column:1 / -1; }
+    .checks { display:flex; gap:14px; flex-wrap:wrap; align-items:center; }
+    .checks label { display:flex; grid-auto-flow:column; align-items:center; gap:8px; }
+    button { border:0; border-radius:9px; min-height:42px; padding:0 14px; font-weight:900; cursor:pointer; }
+    .primary { background:var(--green); color:#fff; }
+    .secondary { background:#eef4f1; color:var(--dark); }
+    .danger { background:#ffeded; color:#b42318; }
+    .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+    .status { font-weight:900; color:var(--green); min-height:20px; }
+    .list { display:grid; gap:10px; }
+    .item { border:1px solid var(--line); border-radius:10px; padding:10px; display:grid; gap:8px; }
+    .item strong { font-size:16px; }
+    .meta { color:var(--muted); font-size:13px; line-height:1.35; }
+    .badge { display:inline-flex; border-radius:99px; padding:4px 8px; background:#eefbf4; color:#0b7b4c; font-size:12px; font-weight:900; }
+    @media (max-width:720px){ .grid { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>BağçaTap Admin</h1>
+    <p>Bağça əlavə et, düzəlt, gizlət və seçilmiş et</p>
+  </header>
+  <main>
+    <section class="card">
+      <div class="grid">
+        <label class="full">Admin şifrəsi<input id="password" type="password" value="1234" autocomplete="current-password" /></label>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <button class="secondary" id="loadBtn" type="button">Siyahını yenilə</button>
+        <a href="index.html?v=adminlive1" target="_blank"><button class="secondary" type="button">İstifadəçi səhifəsi</button></a>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 id="formTitle">Yeni bağça əlavə et</h2>
+      <form id="form" class="grid">
+        <input id="itemId" type="hidden" />
+        <label>Ad<input id="name" required placeholder="Məs: Laylay Uşaq Bağçası" /></label>
+        <label>Rayon<input id="district" placeholder="Məs: Binəqədi" /></label>
+        <label class="full">Ünvan<input id="address" required placeholder="Məs: Əcəmi Naxçıvani küçəsi, Bakı" /></label>
+        <label>Latitude<input id="lat" type="number" step="0.000001" placeholder="40.4168" /></label>
+        <label>Longitude<input id="lng" type="number" step="0.000001" placeholder="49.8401" /></label>
+        <label>Telefon / WhatsApp<input id="phone" placeholder="+994552201202" /></label>
+        <label>Qiymət<input id="price" placeholder="370 AZN / ay" /></label>
+        <label>Yaş qrupu<input id="ages" placeholder="2-6 yaş" /></label>
+        <label>İş saatı<input id="hours" placeholder="08:30 - 18:00" /></label>
+        <label>Boş yer<input id="places" placeholder="5 boş yer" /></label>
+        <label>Uşaq tutumu<input id="capacity" placeholder="35 uşaq" /></label>
+        <label>Qruplar<input id="groups" placeholder="2-3, 3-4, 4-6 yaş" /></label>
+        <label class="full">Şəkil URL<input id="image" placeholder="https://..." /></label>
+        <label class="full">Qısa qeyd<textarea id="note"></textarea></label>
+        <label class="full">Xidmətlər, vergüllə<textarea id="services" placeholder="Yemək, Hazırlıq, Kamera"></textarea></label>
+        <label class="full">Fəaliyyət və proqram, hər sətirdə biri<textarea id="activity"></textarea></label>
+        <label class="full">Sertifikatlar, hər sətirdə biri<textarea id="certificates"></textarea></label>
+        <label class="full">Uşaq yerləşdirmə qaydası<textarea id="admission"></textarea></label>
+        <label class="full">Yemək məlumatı<textarea id="meals"></textarea></label>
+        <label class="full">Müəllim və personal<textarea id="staff"></textarea></label>
+        <label class="full">Təhlükəsizlik, hər sətirdə biri<textarea id="safety"></textarea></label>
+        <div class="checks full">
+          <label><input id="active" type="checkbox" checked /> Aktiv görünsün</label>
+          <label><input id="featured" type="checkbox" /> Seçilmiş/yuxarıda</label>
+        </div>
+        <div class="row full">
+          <button class="primary" type="submit">Yadda saxla</button>
+          <button class="secondary" id="resetBtn" type="button">Təmizlə</button>
+        </div>
+      </form>
+      <div class="status" id="status"></div>
+    </section>
+
+    <section class="card">
+      <h2>Mövcud bağçalar</h2>
+      <div class="list" id="list"></div>
+    </section>
+  </main>
+
+  <script>
+    const API = "https://sat-chapel-division-observed.trycloudflare.com/api/bagcatap/kindergartens";
+    const fields = ["name","district","address","lat","lng","phone","price","ages","hours","places","capacity","groups","image","note","services","activity","certificates","admission","meals","staff","safety"];
+    let items = [];
+    const $ = id => document.getElementById(id);
+    const lines = value => String(value || "").split(/\n|,/).map(x => x.trim()).filter(Boolean);
+    const multiline = value => Array.isArray(value) ? value.join("\n") : (value || "");
+    const status = text => $("status").textContent = text;
+    function password(){ return $("password").value.trim(); }
+    function formData(){
+      const data = { password: password(), active: $("active").checked, featured: $("featured").checked };
+      fields.forEach(key => data[key] = $(key).value.trim());
+      data.lat = Number(data.lat || 0);
+      data.lng = Number(data.lng || 0);
+      data.services = lines(data.services);
+      data.activity = lines(data.activity);
+      data.certificates = lines(data.certificates);
+      data.admission = lines(data.admission);
+      data.safety = lines(data.safety);
+      return data;
+    }
+    function clearForm(){
+      $("itemId").value = "";
+      fields.forEach(key => $(key).value = "");
+      $("active").checked = true;
+      $("featured").checked = false;
+      $("formTitle").textContent = "Yeni bağça əlavə et";
+    }
+    function editItem(id){
+      const item = items.find(row => row.id === id);
+      if (!item) return;
+      $("itemId").value = item.id;
+      fields.forEach(key => $(key).value = Array.isArray(item[key]) ? multiline(item[key]) : (item[key] || ""));
+      $("active").checked = item.active !== false;
+      $("featured").checked = !!item.featured;
+      $("formTitle").textContent = "Bağçanı düzəlt";
+      window.scrollTo({top:0, behavior:"smooth"});
+    }
+    async function saveItem(event){
+      event.preventDefault();
+      const id = $("itemId").value;
+      const res = await fetch(id ? `${API}/${encodeURIComponent(id)}` : API, {
+        method: id ? "PATCH" : "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify(formData())
+      });
+      if (!res.ok) { status("Yadda saxlanmadı. Şifrəni və xanaları yoxla."); return; }
+      status("Yadda saxlandı. APK və sayt avtomatik yenilənəcək.");
+      clearForm();
+      await loadItems();
+    }
+    async function deleteItem(id){
+      if (!confirm("Bu bağça silinsin?")) return;
+      const res = await fetch(`${API}/${encodeURIComponent(id)}?password=${encodeURIComponent(password())}`, { method:"DELETE" });
+      status(res.ok ? "Silindi." : "Silinmədi. Şifrəni yoxla.");
+      await loadItems();
+    }
+    async function loadItems(){
+      const res = await fetch(`${API}?password=${encodeURIComponent(password())}`, { cache:"no-store" });
+      if (!res.ok) { status("Siyahı açılmadı. Serveri yoxlamaq lazımdır."); return; }
+      items = await res.json();
+      $("list").innerHTML = items.map(item => `
+        <div class="item">
+          <div><strong>${item.name}</strong> ${item.featured ? '<span class="badge">Seçilmiş</span>' : ''} ${item.active === false ? '<span class="badge">Gizli</span>' : ''}</div>
+          <div class="meta">${item.district || ""} · ${item.price || ""}<br>${item.address || ""}</div>
+          <div class="row">
+            <button class="secondary" type="button" onclick="editItem('${item.id}')">Düzəlt</button>
+            <button class="danger" type="button" onclick="deleteItem('${item.id}')">Sil</button>
+          </div>
+        </div>
+      `).join("") || "<p>Hələ bağça yoxdur.</p>";
+    }
+    $("form").addEventListener("submit", saveItem);
+    $("resetBtn").addEventListener("click", clearForm);
+    $("loadBtn").addEventListener("click", loadItems);
+    loadItems();
+  </script>
+</body>
+</html>

@@ -1,0 +1,183 @@
+[
+  {
+    "id": "kg-laylay",
+    "name": "Laylay Uşaq Bağçası",
+    "district": "Binəqədi",
+    "address": "Əcəmi Naxçıvani küçəsi, Bakı",
+    "lat": 40.4168,
+    "lng": 49.8401,
+    "phone": "+994552201202",
+    "price": "370 AZN / ay",
+    "ages": "2-6 yaş",
+    "hours": "08:30 - 18:00",
+    "places": "Məlumat alınır",
+    "services": [
+      "Yemək",
+      "Hazırlıq",
+      "Oyun otağı"
+    ],
+    "image": "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?auto=format&fit=crop&w=900&q=80",
+    "note": "Əcəmi Naxçıvani küçəsində yerləşən Laylay uşaq bağçası. Qiymət aylıq 370 AZN olaraq qeyd edildi.",
+    "capacity": "35 uşaq",
+    "groups": "2-3, 3-4, 4-6 yaş qrupları",
+    "activity": [
+      "Səhər qarşılanma və sərbəst oyun saatı",
+      "Məktəbə hazırlıq, rəsm və danışıq inkişafı",
+      "Hərəkətli oyunlar və gündəlik istirahət rejimi"
+    ],
+    "certificates": [
+      "Fəaliyyət sənədi üçün yer",
+      "Sanitar-gigiyena sənədi üçün yer",
+      "Personal sertifikatları üçün yer"
+    ],
+    "admission": [
+      "Valideyn bağçaya zəng edir və görüş vaxtı alır",
+      "Uşağın yaşı və uyğun qrup dəqiqləşdirilir",
+      "Boş yer olduqda sənədlər təqdim edilir və yerləşdirmə tamamlanır"
+    ],
+    "meals": "Gündəlik yemək menyusu bağçadan alınacaq. Demo üçün səhər yeməyi, nahar və ara yemək sahəsi ayrılıb.",
+    "staff": "Müəllim, dayə və köməkçi personal məlumatları real bağça ilə danışıldıqdan sonra əlavə olunacaq.",
+    "safety": [
+      "Qapalı giriş və valideynlə əlaqə",
+      "Uşaqlar üçün oyun otağı",
+      "Təcili əlaqə nömrəsi və gündəlik izləmə üçün yer"
+    ],
+    "featured": true,
+    "active": true
+  },
+  {
+    "id": "kg-gunes",
+    "name": "Günəş Uşaq Bağçası",
+    "district": "Nərimanov",
+    "address": "Nərimanov r., Təbriz küçəsi 74",
+    "lat": 40.3981,
+    "lng": 49.8687,
+    "phone": "+994552201202",
+    "price": "450 AZN / ay",
+    "ages": "2-6 yaş",
+    "hours": "08:00 - 18:30",
+    "places": "4 boş yer",
+    "services": [
+      "Yemək",
+      "İngilis dili",
+      "Kamera",
+      "Hazırlıq"
+    ],
+    "image": "https://images.unsplash.com/photo-1588072432836-e10032774350?auto=format&fit=crop&w=900&q=80",
+    "note": "Kiçik qruplar, sakit məhəllə və valideynlə gündəlik əlaqə.",
+    "featured": false,
+    "active": true
+  },
+  {
+    "id": "kg-balaca-dunya",
+    "name": "Balaca Dünya",
+    "district": "Yasamal",
+    "address": "Yasamal r., İnşaatçılar pr. 32",
+    "lat": 40.3846,
+    "lng": 49.8023,
+    "phone": "+994552201202",
+    "price": "390 AZN / ay",
+    "ages": "3-6 yaş",
+    "hours": "08:30 - 18:00",
+    "places": "7 boş yer",
+    "services": [
+      "Məktəbə hazırlıq",
+      "Rəsm",
+      "Musiqi"
+    ],
+    "image": "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=900&q=80",
+    "note": "Məktəbə hazırlıq və yaradıcılıq dərslərinə fokuslanan bağça.",
+    "featured": false,
+    "active": true
+  },
+  {
+    "id": "kg-agilli-balalar",
+    "name": "Ağıllı Balalar",
+    "district": "Nəsimi",
+    "address": "Nəsimi r., 28 May ətrafı",
+    "lat": 40.3798,
+    "lng": 49.8499,
+    "phone": "+994552201202",
+    "price": "520 AZN / ay",
+    "ages": "1.5-6 yaş",
+    "hours": "08:00 - 19:00",
+    "places": "3 boş yer",
+    "services": [
+      "Kamera",
+      "Loqoped",
+      "İngilis dili",
+      "Servis"
+    ],
+    "image": "https://images.unsplash.com/photo-1607453998774-d533f65dac99?auto=format&fit=crop&w=900&q=80",
+    "note": "Mərkəzə yaxın, işləyən valideynlər üçün uzun iş saatı.",
+    "featured": false,
+    "active": true
+  },
+  {
+    "id": "kg-sevinc",
+    "name": "Sevinc Bağçası",
+    "district": "Xətai",
+    "address": "Xətai r., Ağ Şəhər yaxınlığı",
+    "lat": 40.3812,
+    "lng": 49.8758,
+    "phone": "+994552201202",
+    "price": "480 AZN / ay",
+    "ages": "2-5 yaş",
+    "hours": "08:00 - 18:00",
+    "places": "5 boş yer",
+    "services": [
+      "Yemək",
+      "Rəqs",
+      "Psixoloq"
+    ],
+    "image": "https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=900&q=80",
+    "note": "Rahat sinif otaqları və oyun zonası olan ailə tipli bağça.",
+    "featured": false,
+    "active": true
+  },
+  {
+    "id": "kg-aylin-kids",
+    "name": "Aylin Kids",
+    "district": "Binəqədi",
+    "address": "Binəqədi r., Azadlıq metrosu yaxınlığı",
+    "lat": 40.4174,
+    "lng": 49.8421,
+    "phone": "+994552201202",
+    "price": "360 AZN / ay",
+    "ages": "2-6 yaş",
+    "hours": "09:00 - 18:00",
+    "places": "9 boş yer",
+    "services": [
+      "Servis",
+      "Yemək",
+      "Rəsm"
+    ],
+    "image": "https://images.unsplash.com/photo-1596464716127-f2a82984de30?auto=format&fit=crop&w=900&q=80",
+    "note": "Qiyməti daha rahat, servis seçimi olan bağça.",
+    "featured": false,
+    "active": true
+  },
+  {
+    "id": "kg-zeka-kids",
+    "name": "Zəka Kids",
+    "district": "Nərimanov",
+    "address": "Nərimanov r., Gənclik metrosu yaxınlığı",
+    "lat": 40.4008,
+    "lng": 49.8516,
+    "phone": "+994552201202",
+    "price": "550 AZN / ay",
+    "ages": "3-6 yaş",
+    "hours": "08:00 - 18:30",
+    "places": "2 boş yer",
+    "services": [
+      "İngilis dili",
+      "Robotika",
+      "Kamera",
+      "Hazırlıq"
+    ],
+    "image": "https://images.unsplash.com/photo-1544776193-352d25ca82cd?auto=format&fit=crop&w=900&q=80",
+    "note": "Texnologiya və məktəbə hazırlıq proqramı olan premium bağça.",
+    "featured": false,
+    "active": true
+  }
+]

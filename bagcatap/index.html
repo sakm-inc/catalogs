@@ -535,7 +535,8 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    const kindergartens = [
+    const API_URL = "https://sat-chapel-division-observed.trycloudflare.com/api/bagcatap/kindergartens";
+    let kindergartens = [
       {
         name: "Laylay Uşaq Bağçası",
         district: "Binəqədi",
@@ -714,7 +715,7 @@
         .map(item => ({ ...item, distance: distanceKm(userPoint, item) }))
         .filter(item => !district || item.district === district)
         .filter(item => {
-          const text = [item.name, item.district, item.address, item.price, item.ages, item.services.join(" ")].join(" ").toLowerCase();
+          const text = [item.name, item.district, item.address, item.price, item.ages, (item.services || []).join(" ")].join(" ").toLowerCase();
           return !q || text.includes(q);
         })
         .sort((a, b) => {
@@ -742,14 +743,14 @@
       });
       items.forEach(item => markerFor(item).addTo(map));
       document.getElementById("countLabel").textContent = `${items.length} bağça`;
-      document.getElementById("sortLabel").textContent = userPoint ? "Sənə yaxınlıq üzrə düzülüb" : "Bakı üzrə nümunə məlumatlar";
+      document.getElementById("sortLabel").textContent = userPoint ? "Sənə yaxınlıq üzrə düzülüb" : "Canlı admin məlumatları";
       document.getElementById("list").innerHTML = items.map(item => `
         <article class="card" data-card-name="${item.name}">
           <div class="photo" style="background-image:url('${item.image}')"></div>
           <div>
             <h2>${item.name}</h2>
             <div class="meta">${item.district} · ${item.price}${item.distance !== null ? ` · ${formatDistance(item.distance)}` : ""}<br>${item.address}</div>
-            <div class="tags">${item.services.slice(0, 3).map(service => `<span class="tag">${service}</span>`).join("")}</div>
+            <div class="tags">${(item.services || []).slice(0, 3).map(service => `<span class="tag">${service}</span>`).join("")}</div>
             <div class="actions">
               <a class="call" href="tel:${item.phone}">Zəng et</a>
               <button class="detail" type="button" data-name="${item.name}">Bax</button>
@@ -841,7 +842,7 @@
               <div class="info"><small>Uşaq tutumu</small><strong>${capacity}</strong></div>
               <div class="info"><small>Qruplar</small><strong>${groups}</strong></div>
             </div>
-            <div class="services">${item.services.map(service => `<span class="tag">${service}</span>`).join("")}</div>
+            <div class="services">${(item.services || []).map(service => `<span class="tag">${service}</span>`).join("")}</div>
             <div class="section-title">Fəaliyyət və proqram</div>
             <div class="detail-section">${listHtml(activity)}</div>
             <div class="section-title">Sertifikatlar və sənədlər</div>
@@ -883,6 +884,43 @@
       document.getElementById("backdrop").classList.remove("open");
     }
 
+    function normalizeItem(item) {
+      return {
+        ...item,
+        services: Array.isArray(item.services) ? item.services : [],
+        activity: Array.isArray(item.activity) ? item.activity : [],
+        certificates: Array.isArray(item.certificates) ? item.certificates : [],
+        admission: Array.isArray(item.admission) ? item.admission : [],
+        safety: Array.isArray(item.safety) ? item.safety : [],
+        lat: Number(item.lat || 0),
+        lng: Number(item.lng || 0)
+      };
+    }
+
+    function updateDistrictOptions() {
+      const select = document.getElementById("district");
+      const current = select.value;
+      const districts = [...new Set(kindergartens.map(item => item.district).filter(Boolean))]
+        .sort((a, b) => a.localeCompare(b, "az"));
+      select.innerHTML = `<option value="">Hamısı</option>${districts.map(name => `<option>${name}</option>`).join("")}`;
+      select.value = districts.includes(current) ? current : "";
+    }
+
+    async function loadLiveKindergartens() {
+      try {
+        const response = await fetch(API_URL, { cache: "no-store" });
+        if (!response.ok) throw new Error("api");
+        const data = await response.json();
+        if (Array.isArray(data) && data.length) {
+          kindergartens = data.map(normalizeItem);
+        }
+      } catch (error) {
+        console.warn("BağçaTap canlı məlumat açılmadı, demo siyahı göstərilir.");
+      }
+      updateDistrictOptions();
+      render();
+    }
+
     document.getElementById("backdrop").addEventListener("click", closePanel);
     document.getElementById("search").addEventListener("input", render);
     document.getElementById("district").addEventListener("change", render);
@@ -902,7 +940,7 @@
       }, { enableHighAccuracy: true, timeout: 6000 });
     });
 
-    render();
+    loadLiveKindergartens();
   </script>
 </body>
 </html>
