@@ -31,6 +31,8 @@
     .item strong { font-size:16px; }
     .meta { color:var(--muted); font-size:13px; line-height:1.35; }
     .badge { display:inline-flex; border-radius:99px; padding:4px 8px; background:#eefbf4; color:#0b7b4c; font-size:12px; font-weight:900; }
+    .notice-preview { border:1px solid #bfe8d2; background:#eefbf4; border-radius:10px; padding:12px; display:grid; gap:4px; }
+    .notice-preview strong { font-size:16px; }
     @media (max-width:720px){ .grid { grid-template-columns:1fr; } }
   </style>
 </head>
@@ -88,6 +90,27 @@
     </section>
 
     <section class="card">
+      <h2>Bildiriş göndər</h2>
+      <p>Buradan göndərilən mesaj APK açıq olanda və istifadəçi tətbiqə girəndə yuxarıda görünəcək.</p>
+      <form id="notifyForm" class="grid" style="margin-top:12px">
+        <label>Başlıq<input id="notifyTitle" placeholder="Məs: Yeni bağça əlavə olundu" /></label>
+        <label>Aktivlik
+          <select id="notifyActive">
+            <option value="true">Aktiv göstər</option>
+            <option value="false">Hazırla, amma göstərmə</option>
+          </select>
+        </label>
+        <label class="full">Mesaj<textarea id="notifyMessage" required placeholder="Məs: Nərimanovda yeni bağça əlavə olundu. Ətraflı baxmaq üçün tətbiqə daxil olun."></textarea></label>
+        <div class="row full">
+          <button class="primary" type="submit">Bildirişi göndər</button>
+          <button class="secondary" id="loadNotificationsBtn" type="button">Bildirişləri yenilə</button>
+        </div>
+      </form>
+      <div class="status" id="notifyStatus"></div>
+      <div class="list" id="notificationsList" style="margin-top:12px"></div>
+    </section>
+
+    <section class="card">
       <h2>Mövcud bağçalar</h2>
       <div class="list" id="list"></div>
     </section>
@@ -95,12 +118,15 @@
 
   <script>
     const API = "https://sat-chapel-division-observed.trycloudflare.com/api/bagcatap/kindergartens";
+    const NOTIFICATION_API = "https://sat-chapel-division-observed.trycloudflare.com/api/bagcatap/notifications";
     const fields = ["name","district","address","lat","lng","phone","price","ages","hours","places","capacity","groups","image","note","services","activity","certificates","admission","meals","staff","safety"];
     let items = [];
+    let notifications = [];
     const $ = id => document.getElementById(id);
     const lines = value => String(value || "").split(/\n|,/).map(x => x.trim()).filter(Boolean);
     const multiline = value => Array.isArray(value) ? value.join("\n") : (value || "");
     const status = text => $("status").textContent = text;
+    const notifyStatus = text => $("notifyStatus").textContent = text;
     function password(){ return $("password").value.trim(); }
     function formData(){
       const data = { password: password(), active: $("active").checked, featured: $("featured").checked };
@@ -150,6 +176,61 @@
       status(res.ok ? "Silindi." : "Silinmədi. Şifrəni yoxla.");
       await loadItems();
     }
+    async function sendNotification(event){
+      event.preventDefault();
+      const title = $("notifyTitle").value.trim() || "BağçaTap bildirişi";
+      const message = $("notifyMessage").value.trim();
+      if (!message) { notifyStatus("Mesaj yaz."); return; }
+      const res = await fetch(NOTIFICATION_API, {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({
+          password: password(),
+          title,
+          message,
+          active: $("notifyActive").value === "true"
+        })
+      });
+      if (!res.ok) { notifyStatus("Bildiriş göndərilmədi. Şifrəni yoxla."); return; }
+      $("notifyTitle").value = "";
+      $("notifyMessage").value = "";
+      $("notifyActive").value = "true";
+      notifyStatus("Bildiriş göndərildi. APK istifadəçiləri tətbiqə girəndə görəcək.");
+      await loadNotifications();
+    }
+    async function toggleNotification(id, active){
+      const res = await fetch(`${NOTIFICATION_API}/${encodeURIComponent(id)}`, {
+        method: "PATCH",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ password: password(), active })
+      });
+      notifyStatus(res.ok ? "Bildiriş yeniləndi." : "Bildiriş yenilənmədi.");
+      await loadNotifications();
+    }
+    async function deleteNotification(id){
+      if (!confirm("Bu bildiriş silinsin?")) return;
+      const res = await fetch(`${NOTIFICATION_API}/${encodeURIComponent(id)}?password=${encodeURIComponent(password())}`, { method:"DELETE" });
+      notifyStatus(res.ok ? "Bildiriş silindi." : "Bildiriş silinmədi.");
+      await loadNotifications();
+    }
+    async function loadNotifications(){
+      const res = await fetch(`${NOTIFICATION_API}?password=${encodeURIComponent(password())}`, { cache:"no-store" });
+      if (!res.ok) { notifyStatus("Bildirişlər açılmadı."); return; }
+      notifications = await res.json();
+      $("notificationsList").innerHTML = notifications.map(item => `
+        <div class="item">
+          <div class="notice-preview">
+            <strong>${item.title}</strong>
+            <span>${item.message}</span>
+            <div class="meta">${item.createdAt || ""} ${item.active ? "· Aktiv" : "· Gizli"}</div>
+          </div>
+          <div class="row">
+            <button class="secondary" type="button" onclick="toggleNotification('${item.id}', ${item.active ? "false" : "true"})">${item.active ? "Gizlət" : "Aktiv et"}</button>
+            <button class="danger" type="button" onclick="deleteNotification('${item.id}')">Sil</button>
+          </div>
+        </div>
+      `).join("") || "<p>Hələ bildiriş yoxdur.</p>";
+    }
     async function loadItems(){
       const res = await fetch(`${API}?password=${encodeURIComponent(password())}`, { cache:"no-store" });
       if (!res.ok) { status("Siyahı açılmadı. Serveri yoxlamaq lazımdır."); return; }
@@ -166,9 +247,12 @@
       `).join("") || "<p>Hələ bağça yoxdur.</p>";
     }
     $("form").addEventListener("submit", saveItem);
+    $("notifyForm").addEventListener("submit", sendNotification);
     $("resetBtn").addEventListener("click", clearForm);
     $("loadBtn").addEventListener("click", loadItems);
+    $("loadNotificationsBtn").addEventListener("click", loadNotifications);
     loadItems();
+    loadNotifications();
   </script>
 </body>
 </html>

@@ -283,6 +283,55 @@
       transition: opacity .18s ease;
     }
     .backdrop.open { opacity: 1; pointer-events: auto; }
+    .app-notification {
+      position: fixed;
+      left: 12px;
+      right: 12px;
+      top: calc(10px + env(safe-area-inset-top, 0px));
+      z-index: 30;
+      display: none;
+      gap: 10px;
+      align-items: flex-start;
+      padding: 12px;
+      border-radius: 14px;
+      background: #15201b;
+      color: #fff;
+      box-shadow: 0 18px 42px rgba(0,0,0,.28);
+    }
+
+    .app-notification.show {
+      display: flex;
+    }
+
+    .app-notification div {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .app-notification strong {
+      display: block;
+      font-size: 15px;
+      line-height: 1.25;
+      margin-bottom: 3px;
+    }
+
+    .app-notification span {
+      display: block;
+      font-size: 13px;
+      line-height: 1.35;
+      color: rgba(255,255,255,.86);
+    }
+
+    .app-notification button {
+      width: 32px;
+      height: 32px;
+      border: 0;
+      border-radius: 10px;
+      background: rgba(255,255,255,.14);
+      color: #fff;
+      font-weight: 900;
+      flex: 0 0 auto;
+    }
 
     .panel-head {
       display: flex;
@@ -533,10 +582,18 @@
   </main>
 
   <div class="backdrop" id="backdrop"></div>
+  <div class="app-notification" id="appNotification" role="status" aria-live="polite">
+    <div>
+      <strong id="notificationTitle"></strong>
+      <span id="notificationMessage"></span>
+    </div>
+    <button id="notificationClose" type="button" aria-label="Bağla">×</button>
+  </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     const API_URL = "https://sat-chapel-division-observed.trycloudflare.com/api/bagcatap/kindergartens";
+    const NOTIFICATION_URL = "https://sat-chapel-division-observed.trycloudflare.com/api/bagcatap/notifications";
     let kindergartens = [
       {
         name: "Laylay Uşaq Bağçası",
@@ -672,6 +729,7 @@
     let userPoint = null;
     let activePanelName = "";
     let closingFromPopState = false;
+    let activeNotificationId = "";
     const markers = new Map();
     const map = L.map("map", { zoomControl: false }).setView([40.392, 49.84], 12);
     L.control.zoom({ position: "bottomright" }).addTo(map);
@@ -923,6 +981,36 @@
       };
     }
 
+    function showNotification(item) {
+      if (!item || !item.id || !item.message) return;
+      const dismissedId = localStorage.getItem("bagcatapDismissedNotificationId");
+      if (dismissedId === item.id) return;
+      activeNotificationId = item.id;
+      document.getElementById("notificationTitle").textContent = item.title || "BağçaTap bildirişi";
+      document.getElementById("notificationMessage").textContent = item.message;
+      document.getElementById("appNotification").classList.add("show");
+    }
+
+    function closeNotification() {
+      if (activeNotificationId) {
+        localStorage.setItem("bagcatapDismissedNotificationId", activeNotificationId);
+      }
+      document.getElementById("appNotification").classList.remove("show");
+    }
+
+    async function loadNotifications() {
+      try {
+        const response = await fetch(NOTIFICATION_URL, { cache: "no-store" });
+        if (!response.ok) return;
+        const data = await response.json();
+        if (Array.isArray(data) && data.length) {
+          showNotification(data[0]);
+        }
+      } catch (error) {
+        console.warn("Bildiriş açılmadı.");
+      }
+    }
+
     function updateDistrictOptions() {
       const select = document.getElementById("district");
       const current = select.value;
@@ -948,6 +1036,7 @@
     }
 
     document.getElementById("backdrop").addEventListener("click", closePanel);
+    document.getElementById("notificationClose").addEventListener("click", closeNotification);
     document.getElementById("search").addEventListener("input", render);
     document.getElementById("district").addEventListener("change", render);
     document.getElementById("nearBtn").addEventListener("click", () => {
@@ -967,6 +1056,8 @@
     });
 
     loadLiveKindergartens();
+    loadNotifications();
+    setInterval(loadNotifications, 60000);
   </script>
 </body>
 </html>
