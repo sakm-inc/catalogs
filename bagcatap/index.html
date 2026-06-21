@@ -35,6 +35,10 @@
       grid-template-rows: auto minmax(260px, 1fr) minmax(220px, 36vh);
     }
 
+    .app.map-focus {
+      grid-template-rows: auto minmax(360px, 62vh) minmax(160px, 22vh);
+    }
+
     .topbar {
       position: relative;
       z-index: 2;
@@ -172,9 +176,9 @@
       width: 70px;
       height: 70px;
       border-radius: 8px;
-      background:
-        radial-gradient(circle at 68% 22%, rgba(255,209,102,.95) 0 12px, transparent 13px),
-        linear-gradient(135deg, #dff7ea, #b8edd4);
+      background-color: #dff7ea;
+      background-position: center;
+      background-size: cover;
       position: relative;
       overflow: hidden;
     }
@@ -182,13 +186,9 @@
     .photo::after {
       content: "";
       position: absolute;
-      left: 10px;
-      right: 10px;
-      bottom: 11px;
-      height: 26px;
-      border-radius: 7px 7px 4px 4px;
-      background: #fff;
-      box-shadow: 0 -18px 0 -8px #63d59d, 17px -10px 0 -8px #ff8f70;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(0,0,0,0) 45%, rgba(0,0,0,.28) 100%);
+      pointer-events: none;
     }
 
     .card h2 {
@@ -222,7 +222,7 @@
 
     .actions {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr 1fr 1fr;
       gap: 8px;
     }
 
@@ -326,7 +326,7 @@
 
     .primary-actions {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr 1fr 1fr;
       gap: 10px;
       position: sticky;
       bottom: 0;
@@ -344,6 +344,7 @@
     }
 
     .whatsapp { background: #e9fbef; color: #0b7b4c; }
+    .maplink { background: #eef4ff; color: #2459b8; }
 
     .leaflet-control-attribution { font-size: 9px; }
 
@@ -354,6 +355,7 @@
         grid-template-columns: 430px 1fr;
         grid-template-rows: auto 1fr;
       }
+      .app.map-focus { grid-template-rows: auto 1fr; }
       .topbar, .sheet { grid-column: 1; }
       #map { grid-column: 2; grid-row: 1 / span 2; min-height: 100vh; }
       .sheet { min-height: 0; }
@@ -424,6 +426,7 @@
         hours: "08:30 - 18:00",
         places: "Məlumat alınır",
         services: ["Yemək", "Hazırlıq", "Oyun otağı"],
+        image: "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?auto=format&fit=crop&w=900&q=80",
         note: "Əcəmi Naxçıvani küçəsində yerləşən Laylay uşaq bağçası. Qiymət aylıq 370 AZN olaraq qeyd edildi."
       },
       {
@@ -438,6 +441,7 @@
         hours: "08:00 - 18:30",
         places: "4 boş yer",
         services: ["Yemək", "İngilis dili", "Kamera", "Hazırlıq"],
+        image: "https://images.unsplash.com/photo-1588072432836-e10032774350?auto=format&fit=crop&w=900&q=80",
         note: "Kiçik qruplar, sakit məhəllə və valideynlə gündəlik əlaqə."
       },
       {
@@ -452,6 +456,7 @@
         hours: "08:30 - 18:00",
         places: "7 boş yer",
         services: ["Məktəbə hazırlıq", "Rəsm", "Musiqi"],
+        image: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=900&q=80",
         note: "Məktəbə hazırlıq və yaradıcılıq dərslərinə fokuslanan bağça."
       },
       {
@@ -466,6 +471,7 @@
         hours: "08:00 - 19:00",
         places: "3 boş yer",
         services: ["Kamera", "Loqoped", "İngilis dili", "Servis"],
+        image: "https://images.unsplash.com/photo-1607453998774-d533f65dac99?auto=format&fit=crop&w=900&q=80",
         note: "Mərkəzə yaxın, işləyən valideynlər üçün uzun iş saatı."
       },
       {
@@ -480,6 +486,7 @@
         hours: "08:00 - 18:00",
         places: "5 boş yer",
         services: ["Yemək", "Rəqs", "Psixoloq"],
+        image: "https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=900&q=80",
         note: "Rahat sinif otaqları və oyun zonası olan ailə tipli bağça."
       },
       {
@@ -494,6 +501,7 @@
         hours: "09:00 - 18:00",
         places: "9 boş yer",
         services: ["Servis", "Yemək", "Rəsm"],
+        image: "https://images.unsplash.com/photo-1596464716127-f2a82984de30?auto=format&fit=crop&w=900&q=80",
         note: "Qiyməti daha rahat, servis seçimi olan bağça."
       },
       {
@@ -508,6 +516,7 @@
         hours: "08:00 - 18:30",
         places: "2 boş yer",
         services: ["İngilis dili", "Robotika", "Kamera", "Hazırlıq"],
+        image: "https://images.unsplash.com/photo-1544776193-352d25ca82cd?auto=format&fit=crop&w=900&q=80",
         note: "Texnologiya və məktəbə hazırlıq proqramı olan premium bağça."
       }
     ];
@@ -571,6 +580,7 @@
     function markerFor(item) {
       if (markers.has(item.name)) return markers.get(item.name);
       const marker = L.marker([item.lat, item.lng], { icon }).addTo(map);
+      marker.bindPopup(`<strong>${item.name}</strong><br>${item.price}<br>${item.address}`);
       marker.on("click", () => openPanel(item));
       markers.set(item.name, marker);
       return marker;
@@ -586,7 +596,7 @@
       document.getElementById("sortLabel").textContent = userPoint ? "Sənə yaxınlıq üzrə düzülüb" : "Bakı üzrə nümunə məlumatlar";
       document.getElementById("list").innerHTML = items.map(item => `
         <article class="card">
-          <div class="photo"></div>
+          <div class="photo" style="background-image:url('${item.image}')"></div>
           <div>
             <h2>${item.name}</h2>
             <div class="meta">${item.district} · ${item.price}${item.distance !== null ? ` · ${formatDistance(item.distance)}` : ""}<br>${item.address}</div>
@@ -594,6 +604,7 @@
             <div class="actions">
               <a class="call" href="tel:${item.phone}">Zəng et</a>
               <button class="detail" type="button" data-name="${item.name}">Bax</button>
+              <button class="detail map-pick" type="button" data-map-name="${item.name}">Xəritə</button>
             </div>
           </div>
         </article>
@@ -601,11 +612,24 @@
       document.querySelectorAll("[data-name]").forEach(button => {
         button.addEventListener("click", () => openPanel(kindergartens.find(item => item.name === button.dataset.name)));
       });
+      document.querySelectorAll("[data-map-name]").forEach(button => {
+        button.addEventListener("click", () => focusMap(kindergartens.find(item => item.name === button.dataset.mapName)));
+      });
+    }
+
+    function focusMap(item) {
+      document.querySelector(".app").classList.add("map-focus");
+      setTimeout(() => {
+        map.invalidateSize();
+        map.setView([item.lat, item.lng], 16);
+        markerFor(item).openPopup();
+      }, 180);
     }
 
     function openPanel(item) {
-      map.setView([item.lat, item.lng], 15);
+      focusMap(item);
       const wa = `https://wa.me/${item.phone.replace(/\D/g, "")}?text=${encodeURIComponent("Salam. " + item.name + " haqqında məlumat almaq istəyirəm.")}`;
+      const mapUrl = `https://www.google.com/maps/search/?api=1&query=${item.lat},${item.lng}`;
       document.getElementById("panel").innerHTML = `
         <div class="panel-head">
           <div>
@@ -614,7 +638,7 @@
           </div>
           <button class="close" id="closePanel" type="button">×</button>
         </div>
-        <div class="photo" style="width:100%;height:130px;border-radius:8px;margin-bottom:12px"></div>
+        <div class="photo" style="width:100%;height:150px;border-radius:8px;margin-bottom:12px;background-image:url('${item.image}')"></div>
         <p class="meta" style="font-size:14px;color:#425047">${item.note}</p>
         <div class="info-grid">
           <div class="info"><small>Qiymət</small><strong>${item.price}</strong></div>
@@ -626,6 +650,7 @@
         <div class="primary-actions">
           <a class="call" href="tel:${item.phone}">Zəng et</a>
           <a class="whatsapp" href="${wa}" target="_blank" rel="noopener">WhatsApp</a>
+          <a class="maplink" href="${mapUrl}" target="_blank" rel="noopener">Xəritədə aç</a>
         </div>
       `;
       document.getElementById("panel").classList.add("open");
