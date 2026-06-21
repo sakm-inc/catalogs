@@ -41,6 +41,9 @@
     .map-tools { display:grid; gap:8px; }
     .admin-map { min-height:270px; border:1px solid var(--line); border-radius:10px; overflow:hidden; background:#eef4f1; }
     .coord-status { color:var(--muted); font-size:13px; font-weight:800; min-height:18px; }
+    .upload-box { border:1px dashed #b7d8c6; border-radius:10px; padding:10px; display:grid; gap:8px; background:#f8fcfa; }
+    .upload-preview { width:100%; min-height:150px; border:1px solid var(--line); border-radius:10px; background:#eef4f1 center/cover no-repeat; display:none; }
+    .upload-status { color:var(--muted); font-size:13px; font-weight:800; min-height:18px; }
     .leaflet-container { font:inherit; }
     @media (max-width:720px){ .grid, .stats-grid { grid-template-columns:1fr; } }
   </style>
@@ -98,7 +101,14 @@
         <label>Boş yer<input id="places" placeholder="5 boş yer" /></label>
         <label>Uşaq tutumu<input id="capacity" placeholder="35 uşaq" /></label>
         <label>Qruplar<input id="groups" placeholder="2-3, 3-4, 4-6 yaş" /></label>
-        <label class="full">Şəkil URL<input id="image" placeholder="https://..." /></label>
+        <label class="full">Şəkil
+          <div class="upload-box">
+            <input id="imageFile" type="file" accept="image/*" />
+            <div class="upload-preview" id="imagePreview"></div>
+            <div class="upload-status" id="imageUploadStatus">Telefondan şəkil seç, sistem özü yükləyəcək.</div>
+            <input id="image" placeholder="Şəkil seçiləndə avtomatik dolacaq" />
+          </div>
+        </label>
         <label class="full">Qısa qeyd<textarea id="note"></textarea></label>
         <label class="full">Xidmətlər, vergüllə<textarea id="services" placeholder="Yemək, Hazırlıq, Kamera"></textarea></label>
         <label class="full">Fəaliyyət və proqram, hər sətirdə biri<textarea id="activity"></textarea></label>
@@ -151,6 +161,7 @@
     const API = "https://sat-chapel-division-observed.trycloudflare.com/api/bagcatap/kindergartens";
     const NOTIFICATION_API = "https://sat-chapel-division-observed.trycloudflare.com/api/bagcatap/notifications";
     const STATS_API = "https://sat-chapel-division-observed.trycloudflare.com/api/bagcatap/stats";
+    const IMAGE_UPLOAD_API = "https://sat-chapel-division-observed.trycloudflare.com/api/bagcatap/upload-image";
     const fields = ["name","district","address","lat","lng","phone","price","ages","hours","places","capacity","groups","image","note","services","activity","certificates","admission","meals","staff","safety"];
     let items = [];
     let notifications = [];
@@ -165,6 +176,7 @@
     const notifyStatus = text => $("notifyStatus").textContent = text;
     const statsStatus = text => $("statsStatus").textContent = text;
     const coordStatus = text => $("coordStatus").textContent = text;
+    const imageUploadStatus = text => $("imageUploadStatus").textContent = text;
     function password(){ return $("password").value.trim(); }
     function initAdminMap(){
       adminMap = L.map("adminMap", { scrollWheelZoom:false }).setView(BAKU_CENTER, 11);
@@ -256,9 +268,100 @@
       data.safety = lines(data.safety);
       return data;
     }
+    function updateImagePreview(url){
+      const preview = $("imagePreview");
+      const value = String(url || "").trim();
+      if (!value) {
+        preview.style.display = "none";
+        preview.style.backgroundImage = "";
+        return;
+      }
+      preview.style.display = "block";
+      preview.style.backgroundImage = `url('${value.replace(/'/g, "%27")}')`;
+    }
+    function canvasToBlob(canvas, type, quality){
+      return new Promise(resolve => {
+        if (canvas.toBlob) {
+          canvas.toBlob(resolve, type, quality);
+        } else {
+          const dataUrl = canvas.toDataURL(type, quality);
+          const bytes = atob(dataUrl.split(",")[1]);
+          const arr = new Uint8Array(bytes.length);
+          for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
+          resolve(new Blob([arr], { type }));
+        }
+      });
+    }
+    async function prepareImage(file){
+      const image = new Image();
+      image.src = URL.createObjectURL(file);
+      await new Promise((resolve, reject) => {
+        image.onload = resolve;
+        image.onerror = reject;
+      });
+      const maxSide = 1400;
+      const scale = Math.min(1, maxSide / Math.max(image.width, image.height));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(image.width * scale));
+      canvas.height = Math.max(1, Math.round(image.height * scale));
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(image.src);
+      const blob = await canvasToBlob(canvas, "image/jpeg", 0.84);
+      return blob;
+    }
+    function blobToDataUrl(blob){
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    }
+    async function uploadSelectedImage(event){
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      if (!file.type.startsWith("image/")) {
+        imageUploadStatus("Yalnız şəkil seç.");
+        return;
+      }
+      imageUploadStatus("Şəkil hazırlanır...");
+      try {
+        const blob = await prepareImage(file);
+        if (blob.size > 4 * 1024 * 1024) {
+          imageUploadStatus("Şəkil çox böyükdür. Daha kiçik şəkil seç.");
+          return;
+        }
+        const dataUrl = await blobToDataUrl(blob);
+        imageUploadStatus("Şəkil yüklənir...");
+        const res = await fetch(IMAGE_UPLOAD_API, {
+          method: "POST",
+          headers: {"Content-Type":"application/json"},
+          body: JSON.stringify({
+            password: password(),
+            fileName: file.name.replace(/\.[^.]+$/, "") + ".jpg",
+            mime: "image/jpeg",
+            data: dataUrl
+          })
+        });
+        if (!res.ok) {
+          imageUploadStatus("Şəkil yüklənmədi. Admin şifrəsini yoxla.");
+          return;
+        }
+        const result = await res.json();
+        $("image").value = result.url || result.path || "";
+        updateImagePreview($("image").value);
+        imageUploadStatus("Şəkil yükləndi. Bağçanı yadda saxla.");
+      } catch (error) {
+        imageUploadStatus("Şəkil yüklənmədi. Başqa şəkil ilə yoxla.");
+      }
+    }
     function clearForm(){
       $("itemId").value = "";
       fields.forEach(key => $(key).value = "");
+      $("imageFile").value = "";
+      updateImagePreview("");
+      imageUploadStatus("Telefondan şəkil seç, sistem özü yükləyəcək.");
       $("active").checked = true;
       $("featured").checked = false;
       $("formTitle").textContent = "Yeni bağça əlavə et";
@@ -269,6 +372,9 @@
       if (!item) return;
       $("itemId").value = item.id;
       fields.forEach(key => $(key).value = Array.isArray(item[key]) ? multiline(item[key]) : (item[key] || ""));
+      $("imageFile").value = "";
+      updateImagePreview(item.image || "");
+      imageUploadStatus(item.image ? "Mövcud şəkil yüklənib. İstəsən yenisini seç." : "Telefondan şəkil seç, sistem özü yükləyəcək.");
       $("active").checked = item.active !== false;
       $("featured").checked = !!item.featured;
       $("formTitle").textContent = "Bağçanı düzəlt";
@@ -387,6 +493,8 @@
     $("loadBtn").addEventListener("click", loadItems);
     $("loadStatsBtn").addEventListener("click", loadStats);
     $("loadNotificationsBtn").addEventListener("click", loadNotifications);
+    $("imageFile").addEventListener("change", uploadSelectedImage);
+    $("image").addEventListener("input", event => updateImagePreview(event.target.value));
     $("address").addEventListener("input", scheduleAddressSearch);
     $("district").addEventListener("input", scheduleAddressSearch);
     $("findAddressBtn").addEventListener("click", () => findAddress(true));

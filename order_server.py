@@ -2,6 +2,7 @@ from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from urllib.parse import parse_qs, unquote, urlparse
 from urllib.request import Request, urlopen
 from html import unescape as html_unescape
+import base64
 import hashlib
 import json
 import os
@@ -28,6 +29,7 @@ BAGCATAP_NOTIFICATIONS_FILE = BAGCATAP_DIR / "notifications.json"
 BAGCATAP_USERS_FILE = BAGCATAP_DIR / "users.json"
 BAGCATAP_RESET_CODES_FILE = BAGCATAP_DIR / "reset_codes.json"
 BAGCATAP_STATS_FILE = BAGCATAP_DIR / "stats.json"
+BAGCATAP_UPLOADS_DIR = BAGCATAP_DIR / "uploads"
 KNOWN_BARCODE_LOOKUPS = {
     "6262004910332": {
         "name": "Kalleh tomat ketçupu 330 qr",
@@ -305,6 +307,32 @@ def load_bagcatap_stats():
 
 def save_bagcatap_stats(stats):
     save_json_file(BAGCATAP_STATS_FILE, stats)
+
+
+def safe_upload_name(value):
+    stem = Path(str(value or "bagca")).stem.lower()
+    stem = re.sub(r"[^a-z0-9]+", "-", stem).strip("-")[:40] or "bagca"
+    return stem
+
+
+def image_extension(mime, filename):
+    mime = str(mime or "").lower()
+    suffix = Path(str(filename or "")).suffix.lower()
+    if mime in ("image/jpeg", "image/jpg") or suffix in (".jpg", ".jpeg"):
+        return ".jpg"
+    if mime == "image/png" or suffix == ".png":
+        return ".png"
+    if mime == "image/webp" or suffix == ".webp":
+        return ".webp"
+    return ""
+
+
+def public_request_origin(handler):
+    host = handler.headers.get("X-Forwarded-Host") or handler.headers.get("Host") or ""
+    proto = handler.headers.get("X-Forwarded-Proto") or "https"
+    if not host:
+        return ""
+    return f"{proto}://{host}"
 
 
 def normalize_phone(value):
@@ -809,6 +837,40 @@ class Handler(SimpleHTTPRequestHandler):
             items.insert(0, item)
             save_bagcatap_notifications(items)
             self.api_json(public_bagcatap_notification(item), 201)
+            return
+        if path == "/api/bagcatap/upload-image":
+            data = self.read_body()
+            if not has_admin_password(data.get("password")):
+                self.api_json({"error": "wrong password"}, 403)
+                return
+            filename = str(data.get("fileName", "bagca.jpg"))
+            mime = str(data.get("mime", ""))
+            ext = image_extension(mime, filename)
+            if not ext:
+                self.api_json({"error": "image type not allowed"}, 400)
+                return
+            raw_data = str(data.get("data", ""))
+            if "," in raw_data and raw_data.split(",", 1)[0].startswith("data:"):
+                raw_data = raw_data.split(",", 1)[1]
+            try:
+                image_bytes = base64.b64decode(raw_data, validate=True)
+            except Exception:
+                self.api_json({"error": "invalid image"}, 400)
+                return
+            if not image_bytes or len(image_bytes) > 4 * 1024 * 1024:
+                self.api_json({"error": "image too large"}, 400)
+                return
+            BAGCATAP_UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
+            stored_name = f"{int(time.time() * 1000)}-{safe_upload_name(filename)}{ext}"
+            stored_path = BAGCATAP_UPLOADS_DIR / stored_name
+            stored_path.write_bytes(image_bytes)
+            relative_url = f"/bagcatap/uploads/{stored_name}"
+            origin = public_request_origin(self)
+            self.api_json({
+                "ok": True,
+                "url": f"{origin}{relative_url}" if origin else relative_url,
+                "path": relative_url,
+            }, 201)
             return
         if path == "/api/bagcatap/auth/register":
             data = self.read_body()
