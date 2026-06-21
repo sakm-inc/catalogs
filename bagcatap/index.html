@@ -666,6 +666,12 @@
       }, 180);
     }
 
+    function showNearbyView() {
+      closePanel();
+      document.querySelector(".app").classList.add("map-focus");
+      setTimeout(() => map.invalidateSize(), 180);
+    }
+
     function openPanel(item) {
       focusMap(item);
       const wa = `https://wa.me/${item.phone.replace(/\D/g, "")}?text=${encodeURIComponent("Salam. " + item.name + " haqqında məlumat almaq istəyirəm.")}`;
@@ -673,7 +679,7 @@
         <div class="detail-page">
           <div class="detail-top">
             <div class="detail-kicker">Bağça məlumatı</div>
-            <button class="back-btn" id="closePanel" type="button">Siyahıya qayıt</button>
+            <button class="back-btn" id="closePanel" type="button">Əsas səhifəyə qayıt</button>
           </div>
           <div class="detail-card">
             <div class="detail-photo" style="background-image:url('${item.image}')"></div>
@@ -715,15 +721,18 @@
     document.getElementById("search").addEventListener("input", render);
     document.getElementById("district").addEventListener("change", render);
     document.getElementById("nearBtn").addEventListener("click", () => {
+      showNearbyView();
       if (!navigator.geolocation) return;
       navigator.geolocation.getCurrentPosition(pos => {
         userPoint = { lat: pos.coords.latitude, lng: pos.coords.longitude };
         L.marker([userPoint.lat, userPoint.lng], { icon: userIcon }).addTo(map);
         map.setView([userPoint.lat, userPoint.lng], 14);
         render();
+        setTimeout(() => map.invalidateSize(), 180);
       }, () => {
         userPoint = { lat: 40.395, lng: 49.84 };
         render();
+        setTimeout(() => map.invalidateSize(), 180);
       }, { enableHighAccuracy: true, timeout: 6000 });
     });
 
