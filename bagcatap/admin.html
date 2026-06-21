@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>BağçaTap Admin</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
     :root { --green:#19a66a; --dark:#15201b; --line:#dce8df; --muted:#6a786f; --bg:#f7fbf8; }
     * { box-sizing:border-box; }
@@ -33,6 +34,10 @@
     .badge { display:inline-flex; border-radius:99px; padding:4px 8px; background:#eefbf4; color:#0b7b4c; font-size:12px; font-weight:900; }
     .notice-preview { border:1px solid #bfe8d2; background:#eefbf4; border-radius:10px; padding:12px; display:grid; gap:4px; }
     .notice-preview strong { font-size:16px; }
+    .map-tools { display:grid; gap:8px; }
+    .admin-map { min-height:270px; border:1px solid var(--line); border-radius:10px; overflow:hidden; background:#eef4f1; }
+    .coord-status { color:var(--muted); font-size:13px; font-weight:800; min-height:18px; }
+    .leaflet-container { font:inherit; }
     @media (max-width:720px){ .grid { grid-template-columns:1fr; } }
   </style>
 </head>
@@ -61,6 +66,14 @@
         <label class="full">Ünvan<input id="address" required placeholder="Məs: Əcəmi Naxçıvani küçəsi, Bakı" /></label>
         <label>Latitude<input id="lat" type="number" step="0.000001" placeholder="40.4168" /></label>
         <label>Longitude<input id="lng" type="number" step="0.000001" placeholder="49.8401" /></label>
+        <div class="full map-tools">
+          <div class="row">
+            <button class="secondary" id="findAddressBtn" type="button">Ünvanı xəritədə tap</button>
+            <button class="secondary" id="centerMapBtn" type="button">Bakı mərkəzinə çək</button>
+          </div>
+          <div class="coord-status" id="coordStatus">Ünvanı yazanda xəritədə avtomatik axtarılacaq.</div>
+          <div id="adminMap" class="admin-map"></div>
+        </div>
         <label>Telefon / WhatsApp<input id="phone" placeholder="+994552201202" /></label>
         <label>Qiymət<input id="price" placeholder="370 AZN / ay" /></label>
         <label>Yaş qrupu<input id="ages" placeholder="2-6 yaş" /></label>
@@ -116,18 +129,102 @@
     </section>
   </main>
 
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     const API = "https://sat-chapel-division-observed.trycloudflare.com/api/bagcatap/kindergartens";
     const NOTIFICATION_API = "https://sat-chapel-division-observed.trycloudflare.com/api/bagcatap/notifications";
     const fields = ["name","district","address","lat","lng","phone","price","ages","hours","places","capacity","groups","image","note","services","activity","certificates","admission","meals","staff","safety"];
     let items = [];
     let notifications = [];
+    let adminMap;
+    let adminMarker;
+    let geocodeTimer;
+    const BAKU_CENTER = [40.4093, 49.8671];
     const $ = id => document.getElementById(id);
     const lines = value => String(value || "").split(/\n|,/).map(x => x.trim()).filter(Boolean);
     const multiline = value => Array.isArray(value) ? value.join("\n") : (value || "");
     const status = text => $("status").textContent = text;
     const notifyStatus = text => $("notifyStatus").textContent = text;
+    const coordStatus = text => $("coordStatus").textContent = text;
     function password(){ return $("password").value.trim(); }
+    function initAdminMap(){
+      adminMap = L.map("adminMap", { scrollWheelZoom:false }).setView(BAKU_CENTER, 11);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: "&copy; OpenStreetMap"
+      }).addTo(adminMap);
+      adminMap.on("click", event => {
+        setMarker(event.latlng.lat, event.latlng.lng, 16);
+        coordStatus("Xəritədən seçilən yer qeyd olundu.");
+      });
+    }
+    function setMarker(lat, lng, zoom = 16){
+      const latitude = Number(lat);
+      const longitude = Number(lng);
+      if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return;
+      $("lat").value = latitude.toFixed(6);
+      $("lng").value = longitude.toFixed(6);
+      if (!adminMarker) {
+        adminMarker = L.marker([latitude, longitude], { draggable:true }).addTo(adminMap);
+        adminMarker.on("dragend", () => {
+          const point = adminMarker.getLatLng();
+          $("lat").value = point.lat.toFixed(6);
+          $("lng").value = point.lng.toFixed(6);
+          coordStatus("Markerin yeni yeri qeyd olundu.");
+        });
+      } else {
+        adminMarker.setLatLng([latitude, longitude]);
+      }
+      adminMap.setView([latitude, longitude], zoom);
+    }
+    function clearMarker(){
+      if (adminMarker) {
+        adminMarker.remove();
+        adminMarker = null;
+      }
+      if (adminMap) adminMap.setView(BAKU_CENTER, 11);
+      coordStatus("Ünvanı yazanda xəritədə avtomatik axtarılacaq.");
+    }
+    function updateMarkerFromInputs(){
+      const lat = Number($("lat").value);
+      const lng = Number($("lng").value);
+      if (Number.isFinite(lat) && Number.isFinite(lng) && lat && lng) {
+        setMarker(lat, lng, 16);
+      }
+    }
+    function addressQuery(){
+      const address = $("address").value.trim();
+      const district = $("district").value.trim();
+      if (!address || address.length < 4) return "";
+      let query = [address, district].filter(Boolean).join(", ");
+      if (!/(bakı|baku|azərbaycan|azerbaijan)/i.test(query)) query += ", Bakı, Azərbaycan";
+      return query;
+    }
+    async function findAddress(manual = false){
+      const query = addressQuery();
+      if (!query) {
+        if (manual) coordStatus("Əvvəlcə küçə və ya ünvan yaz.");
+        return;
+      }
+      coordStatus("Ünvan xəritədə axtarılır...");
+      try {
+        const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=az&q=${encodeURIComponent(query)}`;
+        const res = await fetch(url, { headers: { "Accept": "application/json" } });
+        const result = (await res.json())[0];
+        if (!result) {
+          coordStatus("Ünvan tapılmadı. Ünvanı bir az daha dəqiq yaz və yenidən yoxla.");
+          return;
+        }
+        setMarker(Number(result.lat), Number(result.lon), 17);
+        coordStatus("Ünvan tapıldı və xəritədə işarələndi.");
+      } catch (error) {
+        coordStatus("Ünvan avtomatik tapılmadı. Xəritədə yerə basıb marker qoya bilərsən.");
+      }
+    }
+    function scheduleAddressSearch(){
+      clearTimeout(geocodeTimer);
+      geocodeTimer = setTimeout(() => findAddress(false), 900);
+    }
     function formData(){
       const data = { password: password(), active: $("active").checked, featured: $("featured").checked };
       fields.forEach(key => data[key] = $(key).value.trim());
@@ -146,6 +243,7 @@
       $("active").checked = true;
       $("featured").checked = false;
       $("formTitle").textContent = "Yeni bağça əlavə et";
+      clearMarker();
     }
     function editItem(id){
       const item = items.find(row => row.id === id);
@@ -155,6 +253,7 @@
       $("active").checked = item.active !== false;
       $("featured").checked = !!item.featured;
       $("formTitle").textContent = "Bağçanı düzəlt";
+      updateMarkerFromInputs();
       window.scrollTo({top:0, behavior:"smooth"});
     }
     async function saveItem(event){
@@ -251,6 +350,13 @@
     $("resetBtn").addEventListener("click", clearForm);
     $("loadBtn").addEventListener("click", loadItems);
     $("loadNotificationsBtn").addEventListener("click", loadNotifications);
+    $("address").addEventListener("input", scheduleAddressSearch);
+    $("district").addEventListener("input", scheduleAddressSearch);
+    $("findAddressBtn").addEventListener("click", () => findAddress(true));
+    $("centerMapBtn").addEventListener("click", () => adminMap.setView(BAKU_CENTER, 11));
+    $("lat").addEventListener("input", updateMarkerFromInputs);
+    $("lng").addEventListener("input", updateMarkerFromInputs);
+    initAdminMap();
     loadItems();
     loadNotifications();
   </script>
