@@ -186,6 +186,11 @@
       gap: 12px;
       padding: 12px 0;
       border-top: 1px solid var(--line);
+      cursor: pointer;
+    }
+
+    .card:active {
+      opacity: .86;
     }
 
     .photo {
@@ -297,11 +302,16 @@
     }
 
     .detail-top {
+      position: sticky;
+      top: 0;
+      z-index: 4;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 10px;
       margin-bottom: 10px;
+      padding: 0 0 10px;
+      background: #f7fbf8;
     }
 
     .detail-kicker {
@@ -312,12 +322,14 @@
 
     .back-btn {
       border: 1px solid var(--line);
-      background: #fff;
+      background: var(--ink);
       color: var(--ink);
       border-radius: 999px;
-      padding: 9px 12px;
+      padding: 11px 14px;
       font-weight: 900;
       font-size: 13px;
+      color: #fff;
+      box-shadow: 0 8px 18px rgba(21, 32, 27, 0.18);
     }
 
     .detail-card {
@@ -712,7 +724,7 @@
       document.getElementById("countLabel").textContent = `${items.length} bağça`;
       document.getElementById("sortLabel").textContent = userPoint ? "Sənə yaxınlıq üzrə düzülüb" : "Bakı üzrə nümunə məlumatlar";
       document.getElementById("list").innerHTML = items.map(item => `
-        <article class="card">
+        <article class="card" data-card-name="${item.name}">
           <div class="photo" style="background-image:url('${item.image}')"></div>
           <div>
             <h2>${item.name}</h2>
@@ -727,6 +739,12 @@
       `).join("");
       document.querySelectorAll("[data-name]").forEach(button => {
         button.addEventListener("click", () => openPanel(kindergartens.find(item => item.name === button.dataset.name)));
+      });
+      document.querySelectorAll("[data-card-name]").forEach(card => {
+        card.addEventListener("click", () => openPanel(kindergartens.find(item => item.name === card.dataset.cardName)));
+      });
+      document.querySelectorAll(".actions").forEach(actions => {
+        actions.addEventListener("click", event => event.stopPropagation());
       });
     }
 
