@@ -726,8 +726,11 @@
     function markerFor(item) {
       if (markers.has(item.name)) return markers.get(item.name);
       const marker = L.marker([item.lat, item.lng], { icon }).addTo(map);
-      marker.bindPopup(`<strong>${item.name}</strong><br>${item.price}<br>${item.address}`);
-      marker.on("click", () => openPanel(item));
+      marker.bindPopup(`<strong>${item.name}</strong><br>${item.price}<br>${item.address}<br><button style="margin-top:8px;border:0;border-radius:10px;background:#19a66a;color:#fff;font-weight:900;padding:8px 10px" onclick="openPanelByName('${item.name.replace(/'/g, "\\'")}')">Məlumatı aç</button>`);
+      marker.on("click", () => {
+        openPanel(item);
+        marker.closePopup();
+      });
       markers.set(item.name, marker);
       return marker;
     }
@@ -866,6 +869,11 @@
         button.addEventListener("click", closePanel);
       });
       document.getElementById("showOnMap").addEventListener("click", () => focusMap(item));
+    }
+
+    function openPanelByName(name) {
+      const item = kindergartens.find(entry => entry.name === name);
+      if (item) openPanel(item);
     }
 
     function closePanel() {
