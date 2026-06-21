@@ -34,11 +34,15 @@
     .badge { display:inline-flex; border-radius:99px; padding:4px 8px; background:#eefbf4; color:#0b7b4c; font-size:12px; font-weight:900; }
     .notice-preview { border:1px solid #bfe8d2; background:#eefbf4; border-radius:10px; padding:12px; display:grid; gap:4px; }
     .notice-preview strong { font-size:16px; }
+    .stats-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-top:12px; }
+    .stat-box { border:1px solid var(--line); border-radius:10px; padding:12px; background:#fbfdfb; }
+    .stat-box small { display:block; color:var(--muted); font-weight:800; margin-bottom:5px; }
+    .stat-box strong { font-size:24px; }
     .map-tools { display:grid; gap:8px; }
     .admin-map { min-height:270px; border:1px solid var(--line); border-radius:10px; overflow:hidden; background:#eef4f1; }
     .coord-status { color:var(--muted); font-size:13px; font-weight:800; min-height:18px; }
     .leaflet-container { font:inherit; }
-    @media (max-width:720px){ .grid { grid-template-columns:1fr; } }
+    @media (max-width:720px){ .grid, .stats-grid { grid-template-columns:1fr; } }
   </style>
 </head>
 <body>
@@ -53,8 +57,20 @@
       </div>
       <div class="row" style="margin-top:10px">
         <button class="secondary" id="loadBtn" type="button">Siyahını yenilə</button>
+        <button class="secondary" id="loadStatsBtn" type="button">Statistikanı yenilə</button>
         <a href="index.html?v=adminlive1" target="_blank"><button class="secondary" type="button">İstifadəçi səhifəsi</button></a>
       </div>
+    </section>
+
+    <section class="card">
+      <h2>Valideyn və baxış statistikası</h2>
+      <div class="stats-grid">
+        <div class="stat-box"><small>Qeydiyyat olan valideyn</small><strong id="registeredUsers">0</strong></div>
+        <div class="stat-box"><small>Ümumi bağça baxışı</small><strong id="totalViews">0</strong></div>
+        <div class="stat-box"><small>Ən çox baxılan</small><strong id="topViewed">-</strong></div>
+      </div>
+      <div class="list" id="viewsList" style="margin-top:12px"></div>
+      <div class="status" id="statsStatus"></div>
     </section>
 
     <section class="card">
@@ -133,6 +149,7 @@
   <script>
     const API = "https://sat-chapel-division-observed.trycloudflare.com/api/bagcatap/kindergartens";
     const NOTIFICATION_API = "https://sat-chapel-division-observed.trycloudflare.com/api/bagcatap/notifications";
+    const STATS_API = "https://sat-chapel-division-observed.trycloudflare.com/api/bagcatap/stats";
     const fields = ["name","district","address","lat","lng","phone","price","ages","hours","places","capacity","groups","image","note","services","activity","certificates","admission","meals","staff","safety"];
     let items = [];
     let notifications = [];
@@ -145,6 +162,7 @@
     const multiline = value => Array.isArray(value) ? value.join("\n") : (value || "");
     const status = text => $("status").textContent = text;
     const notifyStatus = text => $("notifyStatus").textContent = text;
+    const statsStatus = text => $("statsStatus").textContent = text;
     const coordStatus = text => $("coordStatus").textContent = text;
     function password(){ return $("password").value.trim(); }
     function initAdminMap(){
@@ -330,6 +348,22 @@
         </div>
       `).join("") || "<p>Hələ bildiriş yoxdur.</p>";
     }
+    async function loadStats(){
+      const res = await fetch(`${STATS_API}?password=${encodeURIComponent(password())}`, { cache:"no-store" });
+      if (!res.ok) { statsStatus("Statistika açılmadı. Şifrəni yoxla."); return; }
+      const data = await res.json();
+      $("registeredUsers").textContent = data.registeredUsers || 0;
+      $("totalViews").textContent = data.totalViews || 0;
+      const top = (data.views || [])[0];
+      $("topViewed").textContent = top ? `${top.name}: ${top.views}` : "-";
+      $("viewsList").innerHTML = (data.views || []).map(item => `
+        <div class="item">
+          <div><strong>${item.name}</strong></div>
+          <div class="meta">${item.views || 0} baxış${item.lastViewedAt ? ` · Son baxış: ${item.lastViewedAt}` : ""}</div>
+        </div>
+      `).join("") || "<p>Hələ bağça baxışı yoxdur.</p>";
+      statsStatus("Statistika yeniləndi.");
+    }
     async function loadItems(){
       const res = await fetch(`${API}?password=${encodeURIComponent(password())}`, { cache:"no-store" });
       if (!res.ok) { status("Siyahı açılmadı. Serveri yoxlamaq lazımdır."); return; }
@@ -349,6 +383,7 @@
     $("notifyForm").addEventListener("submit", sendNotification);
     $("resetBtn").addEventListener("click", clearForm);
     $("loadBtn").addEventListener("click", loadItems);
+    $("loadStatsBtn").addEventListener("click", loadStats);
     $("loadNotificationsBtn").addEventListener("click", loadNotifications);
     $("address").addEventListener("input", scheduleAddressSearch);
     $("district").addEventListener("input", scheduleAddressSearch);
@@ -359,6 +394,7 @@
     initAdminMap();
     loadItems();
     loadNotifications();
+    loadStats();
   </script>
 </body>
 </html>

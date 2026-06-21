@@ -2,9 +2,11 @@ from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from urllib.parse import parse_qs, unquote, urlparse
 from urllib.request import Request, urlopen
 from html import unescape as html_unescape
+import hashlib
 import json
 import os
 import re
+import secrets
 import time
 from pathlib import Path
 
@@ -23,6 +25,9 @@ INVENTORY_ATTENDANCE_FILE = INVENTORY_DIR / "attendance.json"
 BAGCATAP_DIR = Path(__file__).parent / "bagcatap"
 BAGCATAP_FILE = BAGCATAP_DIR / "kindergartens.json"
 BAGCATAP_NOTIFICATIONS_FILE = BAGCATAP_DIR / "notifications.json"
+BAGCATAP_USERS_FILE = BAGCATAP_DIR / "users.json"
+BAGCATAP_RESET_CODES_FILE = BAGCATAP_DIR / "reset_codes.json"
+BAGCATAP_STATS_FILE = BAGCATAP_DIR / "stats.json"
 KNOWN_BARCODE_LOOKUPS = {
     "6262004910332": {
         "name": "Kalleh tomat ketçupu 330 qr",
@@ -272,6 +277,68 @@ def save_bagcatap_notifications(items):
     save_json_file(BAGCATAP_NOTIFICATIONS_FILE, items[:100])
 
 
+def load_bagcatap_users():
+    users = load_json_file(BAGCATAP_USERS_FILE, [])
+    return users if isinstance(users, list) else []
+
+
+def save_bagcatap_users(users):
+    save_json_file(BAGCATAP_USERS_FILE, users)
+
+
+def load_bagcatap_reset_codes():
+    codes = load_json_file(BAGCATAP_RESET_CODES_FILE, [])
+    return codes if isinstance(codes, list) else []
+
+
+def save_bagcatap_reset_codes(codes):
+    save_json_file(BAGCATAP_RESET_CODES_FILE, codes[-200:])
+
+
+def load_bagcatap_stats():
+    stats = load_json_file(BAGCATAP_STATS_FILE, {})
+    if not isinstance(stats, dict):
+        stats = {}
+    stats.setdefault("kindergartenViews", {})
+    return stats
+
+
+def save_bagcatap_stats(stats):
+    save_json_file(BAGCATAP_STATS_FILE, stats)
+
+
+def normalize_phone(value):
+    digits = re.sub(r"\D+", "", str(value or ""))
+    if not digits:
+        return ""
+    if digits.startswith("00"):
+        digits = digits[2:]
+    if digits.startswith("0") and len(digits) == 10:
+        digits = "994" + digits[1:]
+    if len(digits) == 9 and digits[:2] in ("50", "51", "55", "70", "77", "99"):
+        digits = "994" + digits
+    return "+" + digits
+
+
+def password_hash(password, salt):
+    return hashlib.sha256(f"{salt}:{password}".encode("utf-8")).hexdigest()
+
+
+def public_bagcatap_user(user):
+    return {
+        "id": user.get("id", ""),
+        "phone": user.get("phone", ""),
+        "createdAt": user.get("createdAt", ""),
+        "lastLoginAt": user.get("lastLoginAt", ""),
+    }
+
+
+def send_bagcatap_reset_sms(phone, code):
+    # Real SMS can be connected here when an SMS provider account is ready.
+    # Until then, the code is returned to the app only for testing.
+    return False
+
+
 def public_bagcatap_notification(item):
     return {
         "id": item.get("id", ""),
@@ -449,6 +516,31 @@ class Handler(SimpleHTTPRequestHandler):
                 items = [item for item in items if item.get("active", True)]
                 items = items[:1]
             self.api_json([public_bagcatap_notification(item) for item in items])
+            return
+        if path == "/api/bagcatap/stats":
+            params = parse_qs(query)
+            if not has_admin_password(params.get("password", [""])[0]):
+                self.api_json({"error": "wrong password"}, 403)
+                return
+            users = load_bagcatap_users()
+            stats = load_bagcatap_stats()
+            view_rows = []
+            by_id = {str(item.get("id", "")): item for item in load_bagcatap_kindergartens()}
+            for kindergarten_id, row in stats.get("kindergartenViews", {}).items():
+                kindergarten = by_id.get(str(kindergarten_id), {})
+                view_rows.append({
+                    "kindergartenId": kindergarten_id,
+                    "name": row.get("name") or kindergarten.get("name") or kindergarten_id,
+                    "views": int(row.get("views", 0) or 0),
+                    "lastViewedAt": row.get("lastViewedAt", ""),
+                })
+            view_rows.sort(key=lambda item: item["views"], reverse=True)
+            self.api_json({
+                "registeredUsers": len(users),
+                "users": [public_bagcatap_user(user) for user in users],
+                "views": view_rows,
+                "totalViews": sum(item["views"] for item in view_rows),
+            })
             return
         if path == "/api/inventory/products":
             params = parse_qs(query)
@@ -714,6 +806,120 @@ class Handler(SimpleHTTPRequestHandler):
             items.insert(0, item)
             save_bagcatap_notifications(items)
             self.api_json(public_bagcatap_notification(item), 201)
+            return
+        if path == "/api/bagcatap/auth/register":
+            data = self.read_body()
+            phone = normalize_phone(data.get("phone"))
+            password = str(data.get("password", ""))
+            if not phone or len(password) < 4:
+                self.api_json({"error": "phone and password required"}, 400)
+                return
+            users = load_bagcatap_users()
+            if any(user.get("phone") == phone for user in users):
+                self.api_json({"error": "phone exists"}, 409)
+                return
+            salt = secrets.token_hex(12)
+            user = {
+                "id": "usr-" + str(int(time.time() * 1000)),
+                "phone": phone,
+                "salt": salt,
+                "passwordHash": password_hash(password, salt),
+                "createdAt": now_display(),
+                "lastLoginAt": now_display(),
+            }
+            users.insert(0, user)
+            save_bagcatap_users(users)
+            self.api_json({"ok": True, "user": public_bagcatap_user(user)}, 201)
+            return
+        if path == "/api/bagcatap/auth/login":
+            data = self.read_body()
+            phone = normalize_phone(data.get("phone"))
+            password = str(data.get("password", ""))
+            users = load_bagcatap_users()
+            for user in users:
+                if user.get("phone") == phone and user.get("passwordHash") == password_hash(password, user.get("salt", "")):
+                    user["lastLoginAt"] = now_display()
+                    save_bagcatap_users(users)
+                    self.api_json({"ok": True, "user": public_bagcatap_user(user)})
+                    return
+            self.api_json({"error": "wrong credentials"}, 403)
+            return
+        if path == "/api/bagcatap/auth/request-reset":
+            data = self.read_body()
+            phone = normalize_phone(data.get("phone"))
+            users = load_bagcatap_users()
+            if not any(user.get("phone") == phone for user in users):
+                self.api_json({"error": "phone not found"}, 404)
+                return
+            code = f"{secrets.randbelow(1000000):06d}"
+            codes = [
+                item for item in load_bagcatap_reset_codes()
+                if item.get("phone") != phone or int(item.get("expiresAt", 0) or 0) > int(time.time())
+            ]
+            codes.append({
+                "phone": phone,
+                "codeHash": password_hash(code, phone),
+                "createdAt": now_display(),
+                "expiresAt": int(time.time()) + 15 * 60,
+                "used": False,
+            })
+            save_bagcatap_reset_codes(codes)
+            sent = send_bagcatap_reset_sms(phone, code)
+            response = {"ok": True, "smsSent": sent}
+            if not sent:
+                response["testCode"] = code
+            self.api_json(response)
+            return
+        if path == "/api/bagcatap/auth/reset-password":
+            data = self.read_body()
+            phone = normalize_phone(data.get("phone"))
+            code = re.sub(r"\D+", "", str(data.get("code", "")))
+            new_password = str(data.get("password", ""))
+            if len(new_password) < 4:
+                self.api_json({"error": "password too short"}, 400)
+                return
+            now_ts = int(time.time())
+            codes = load_bagcatap_reset_codes()
+            match = next((
+                item for item in reversed(codes)
+                if item.get("phone") == phone
+                and not item.get("used")
+                and int(item.get("expiresAt", 0) or 0) >= now_ts
+                and item.get("codeHash") == password_hash(code, phone)
+            ), None)
+            if not match:
+                self.api_json({"error": "wrong code"}, 403)
+                return
+            users = load_bagcatap_users()
+            for user in users:
+                if user.get("phone") == phone:
+                    salt = secrets.token_hex(12)
+                    user["salt"] = salt
+                    user["passwordHash"] = password_hash(new_password, salt)
+                    user["lastLoginAt"] = now_display()
+                    match["used"] = True
+                    save_bagcatap_users(users)
+                    save_bagcatap_reset_codes(codes)
+                    self.api_json({"ok": True, "user": public_bagcatap_user(user)})
+                    return
+            self.api_json({"error": "phone not found"}, 404)
+            return
+        if path == "/api/bagcatap/views":
+            data = self.read_body()
+            kindergarten_id = str(data.get("kindergartenId", "")).strip()
+            name = str(data.get("name", "")).strip()
+            if not kindergarten_id and not name:
+                self.api_json({"error": "kindergarten required"}, 400)
+                return
+            key = kindergarten_id or name
+            stats = load_bagcatap_stats()
+            views = stats.setdefault("kindergartenViews", {})
+            row = views.setdefault(key, {"name": name or key, "views": 0, "lastViewedAt": ""})
+            row["name"] = name or row.get("name") or key
+            row["views"] = int(row.get("views", 0) or 0) + 1
+            row["lastViewedAt"] = now_display()
+            save_bagcatap_stats(stats)
+            self.api_json({"ok": True, "views": row["views"]}, 201)
             return
         if path == "/api/inventory/products":
             data = self.read_body()
