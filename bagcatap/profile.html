@@ -332,6 +332,23 @@
       box-shadow: 0 8px 18px rgba(21, 32, 27, 0.18);
     }
 
+    .home-return {
+      width: 100%;
+      border: 0;
+      background: var(--green);
+      color: #fff;
+      border-radius: 14px;
+      min-height: 48px;
+      font-weight: 950;
+      font-size: 15px;
+      margin: 0 0 12px;
+      box-shadow: 0 10px 20px rgba(25, 166, 106, 0.24);
+    }
+
+    .bottom-return {
+      margin: 12px 0 4px;
+    }
+
     .detail-card {
       background: #fff;
       border: 1px solid var(--line);
@@ -802,8 +819,8 @@
         <div class="detail-page">
           <div class="detail-top">
             <div class="detail-kicker">Bağça məlumatı</div>
-            <button class="back-btn" id="closePanel" type="button">Əsas səhifəyə qayıt</button>
           </div>
+          <button class="home-return" type="button" data-home-return>Əsas səhifəyə qayıt</button>
           <div class="detail-card">
             <div class="detail-photo" style="background-image:url('${item.image}')"></div>
             <div class="panel-head">
@@ -839,12 +856,15 @@
               <a class="whatsapp" href="${wa}" target="_blank" rel="noopener">WhatsApp</a>
               <button class="maplink" type="button" id="showOnMap">Xəritədə göstər</button>
             </div>
+            <button class="home-return bottom-return" type="button" data-home-return>Əsas səhifəyə qayıt</button>
           </div>
         </div>
       `;
       document.getElementById("panel").classList.add("open");
       document.querySelector(".sheet").classList.add("show-detail");
-      document.getElementById("closePanel").addEventListener("click", closePanel);
+      document.querySelectorAll("[data-home-return]").forEach(button => {
+        button.addEventListener("click", closePanel);
+      });
       document.getElementById("showOnMap").addEventListener("click", () => focusMap(item));
     }
 
