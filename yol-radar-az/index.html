@@ -23,29 +23,53 @@
     #map { position: fixed; inset: 0; z-index: 1; }
     .topbar {
       position: fixed; left: 12px; right: 12px; top: 12px; z-index: 5;
-      display: flex; align-items: center; justify-content: space-between; gap: 10px;
-      padding: 10px 12px; border: 1px solid var(--line); border-radius: 18px;
+      display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px;
+      padding: 9px; border: 1px solid var(--line); border-radius: 18px;
       background: var(--panel); backdrop-filter: blur(12px); box-shadow: 0 12px 34px rgba(0,0,0,.28);
     }
     .brand { min-width: 0; }
     .brand b { display: block; font-size: 16px; letter-spacing: .2px; }
     .brand span { display: block; color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .speed {
-      flex: 0 0 auto; display: grid; place-items: center; width: 74px; height: 74px; border-radius: 50%;
-      border: 4px solid var(--green); background: #f8fff9; color: #07100c; font-weight: 800;
+      flex: 0 0 auto; display: grid; place-items: center; width: 60px; height: 60px; border-radius: 50%;
+      border: 3px solid var(--green); background: #f8fff9; color: #07100c; font-weight: 800;
       box-shadow: 0 10px 28px rgba(0,0,0,.35);
     }
-    .speed strong { display: block; margin-top: 6px; font-size: 24px; line-height: 1; }
+    .speed strong { display: block; margin-top: 5px; font-size: 21px; line-height: 1; }
     .speed small { display: block; font-size: 10px; margin-top: 2px; color: #42544d; }
+    .search {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 7px;
+    }
+    .search input {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      padding: 0 12px;
+      font: inherit;
+      color: var(--text);
+      background: rgba(255,255,255,.08);
+      outline: none;
+    }
+    .search input::placeholder { color: rgba(238,251,246,.58); }
+    .search button { min-height: 42px; padding: 0 13px; background: #dffbea; }
     .controls {
       position: fixed; left: 12px; right: 12px; bottom: 14px; z-index: 5;
-      border: 1px solid var(--line); border-radius: 20px; background: var(--panel);
+      border: 1px solid var(--line); border-radius: 18px; background: var(--panel);
       backdrop-filter: blur(12px); box-shadow: 0 -10px 34px rgba(0,0,0,.26);
-      padding: 12px;
+      padding: 8px;
     }
-    .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+    .controls.closed .grid { display: none; }
+    .bar { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; }
+    .bar b { font-size: 13px; }
+    .bar span { display: block; color: var(--muted); font-size: 11px; margin-top: 1px; }
+    .toggle { min-height: 38px; padding: 0 12px; background: #ecfff6; }
+    .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; margin-top: 8px; }
     button {
-      min-height: 46px; border: 0; border-radius: 14px; padding: 9px 8px;
+      min-height: 40px; border: 0; border-radius: 13px; padding: 8px 7px;
       font: inherit; font-weight: 750; color: #06110d; background: #ecfff6;
     }
     button:active { transform: scale(.98); }
@@ -55,7 +79,7 @@
     .crash { background: #ffe3bc; }
     .danger { background: #e7ddff; }
     .locate { background: #dffbea; }
-    .status { margin: 10px 2px 0; color: var(--muted); font-size: 12px; line-height: 1.35; min-height: 32px; }
+    .status { margin: 7px 2px 0; color: var(--muted); font-size: 11px; line-height: 1.3; min-height: 15px; }
     .leaflet-control-attribution { font-size: 10px; }
     .pulse {
       width: 18px; height: 18px; border-radius: 50%; background: var(--blue);
@@ -79,8 +103,19 @@
       <span>Waze tipli yol xəbərdarlıq demosu</span>
     </div>
     <div class="speed"><span><strong id="speed">0</strong><small>km/s</small></span></div>
+    <form class="search" id="searchForm">
+      <input id="destination" autocomplete="off" placeholder="Hara gedirsən? Məs: Gənclik Mall">
+      <button type="submit">Get</button>
+    </form>
   </div>
-  <div class="controls">
+  <div class="controls closed" id="controls">
+    <div class="bar">
+      <div>
+        <b>Yol xəbərdarlığı</b>
+        <span>Kamera, post, tıxac və təhlükə əlavə et</span>
+      </div>
+      <button class="toggle" id="toggleReports">Aç</button>
+    </div>
     <div class="grid">
       <button class="camera" data-type="camera">Kamera</button>
       <button class="police" data-type="police">Post</button>
@@ -114,6 +149,8 @@
     let current = null;
     let userMarker = null;
     let userCircle = null;
+    let destinationMarker = null;
+    let routeLine = null;
     const markers = new Map();
 
     function setStatus(text) { statusEl.textContent = text; }
@@ -143,6 +180,64 @@
         .addTo(map)
         .bindPopup(`<b>${label[0]}</b><br>${new Date(alert.createdAt).toLocaleString("az-AZ")}`);
       markers.set(alert.id, marker);
+    }
+    async function findDestination(query) {
+      const url = new URL("https://nominatim.openstreetmap.org/search");
+      url.searchParams.set("format", "json");
+      url.searchParams.set("limit", "1");
+      url.searchParams.set("countrycodes", "az");
+      url.searchParams.set("q", query);
+      const response = await fetch(url.toString(), { headers: { "Accept": "application/json" } });
+      const places = await response.json();
+      if (!places.length) return null;
+      return {
+        name: places[0].display_name,
+        lat: Number(places[0].lat),
+        lng: Number(places[0].lon)
+      };
+    }
+    async function drawRoute(destination) {
+      if (!current) {
+        setStatus("Marşrut üçün əvvəl GPS yerini tapmaq lazımdır.");
+        return;
+      }
+      const url = `https://router.project-osrm.org/route/v1/driving/${current.lng},${current.lat};${destination.lng},${destination.lat}?overview=full&geometries=geojson`;
+      const response = await fetch(url);
+      const data = await response.json();
+      if (!data.routes || !data.routes.length) {
+        setStatus("Bu istiqamət üçün yol tapılmadı.");
+        return;
+      }
+      const route = data.routes[0];
+      const coords = route.geometry.coordinates.map(point => [point[1], point[0]]);
+      if (routeLine) routeLine.remove();
+      routeLine = L.polyline(coords, { color: "#33d17a", weight: 6, opacity: .86 }).addTo(map);
+      map.fitBounds(routeLine.getBounds(), { padding: [42, 42] });
+      const km = (route.distance / 1000).toFixed(route.distance > 10000 ? 0 : 1);
+      const min = Math.round(route.duration / 60);
+      setStatus(`${destination.name.split(",")[0]}: ${km} km, təxminən ${min} dəq.`);
+    }
+    async function searchDestination(event) {
+      event.preventDefault();
+      const input = document.getElementById("destination");
+      const query = input.value.trim();
+      if (!query) return;
+      setStatus("Ünvan axtarılır...");
+      try {
+        const destination = await findDestination(query);
+        if (!destination) {
+          setStatus("Yer tapılmadı. Bir az daha dəqiq yaz.");
+          return;
+        }
+        if (destinationMarker) destinationMarker.remove();
+        destinationMarker = L.marker([destination.lat, destination.lng], { icon: markerIcon("danger") })
+          .addTo(map)
+          .bindPopup(`<b>Gediləcək yer</b><br>${destination.name}`)
+          .openPopup();
+        await drawRoute(destination);
+      } catch (error) {
+        setStatus("Axtarış alınmadı. İnternet bağlantısını yoxla.");
+      }
     }
     function addAlert(type) {
       if (!current) {
@@ -184,6 +279,13 @@
     }
     document.querySelectorAll("button[data-type]").forEach(btn => {
       btn.addEventListener("click", () => addAlert(btn.dataset.type));
+    });
+    document.getElementById("searchForm").addEventListener("submit", searchDestination);
+    document.getElementById("toggleReports").addEventListener("click", event => {
+      event.preventDefault();
+      const controls = document.getElementById("controls");
+      controls.classList.toggle("closed");
+      event.currentTarget.textContent = controls.classList.contains("closed") ? "Aç" : "Bağla";
     });
     document.getElementById("locate").addEventListener("click", () => {
       if (current) map.setView([current.lat, current.lng], 16);
