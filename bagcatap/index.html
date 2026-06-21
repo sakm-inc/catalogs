@@ -362,6 +362,55 @@
       font-size: 14px;
     }
 
+    .section-title {
+      margin: 14px 0 8px;
+      font-size: 14px;
+      font-weight: 950;
+      color: var(--ink);
+    }
+
+    .detail-section {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fbfdfb;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+
+    .detail-section p {
+      margin: 0;
+      color: #425047;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .detail-list {
+      display: grid;
+      gap: 7px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .detail-list li {
+      color: #35443b;
+      font-size: 13px;
+      line-height: 1.35;
+      padding-left: 16px;
+      position: relative;
+    }
+
+    .detail-list li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 7px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+
     .services {
       display: flex;
       flex-wrap: wrap;
@@ -471,7 +520,31 @@
         places: "Məlumat alınır",
         services: ["Yemək", "Hazırlıq", "Oyun otağı"],
         image: "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?auto=format&fit=crop&w=900&q=80",
-        note: "Əcəmi Naxçıvani küçəsində yerləşən Laylay uşaq bağçası. Qiymət aylıq 370 AZN olaraq qeyd edildi."
+        note: "Əcəmi Naxçıvani küçəsində yerləşən Laylay uşaq bağçası. Qiymət aylıq 370 AZN olaraq qeyd edildi.",
+        capacity: "35 uşaq",
+        groups: "2-3, 3-4, 4-6 yaş qrupları",
+        activity: [
+          "Səhər qarşılanma və sərbəst oyun saatı",
+          "Məktəbə hazırlıq, rəsm və danışıq inkişafı",
+          "Hərəkətli oyunlar və gündəlik istirahət rejimi"
+        ],
+        certificates: [
+          "Fəaliyyət sənədi üçün yer",
+          "Sanitar-gigiyena sənədi üçün yer",
+          "Personal sertifikatları üçün yer"
+        ],
+        admission: [
+          "Valideyn bağçaya zəng edir və görüş vaxtı alır",
+          "Uşağın yaşı və uyğun qrup dəqiqləşdirilir",
+          "Boş yer olduqda sənədlər təqdim edilir və yerləşdirmə tamamlanır"
+        ],
+        meals: "Gündəlik yemək menyusu bağçadan alınacaq. Demo üçün səhər yeməyi, nahar və ara yemək sahəsi ayrılıb.",
+        staff: "Müəllim, dayə və köməkçi personal məlumatları real bağça ilə danışıldıqdan sonra əlavə olunacaq.",
+        safety: [
+          "Qapalı giriş və valideynlə əlaqə",
+          "Uşaqlar üçün oyun otağı",
+          "Təcili əlaqə nömrəsi və gündəlik izləmə üçün yer"
+        ]
       },
       {
         name: "Günəş Uşaq Bağçası",
@@ -672,8 +745,40 @@
       setTimeout(() => map.invalidateSize(), 180);
     }
 
+    function detailValue(item, key, fallback) {
+      return item[key] || fallback;
+    }
+
+    function listHtml(items) {
+      return `<ul class="detail-list">${items.map(value => `<li>${value}</li>`).join("")}</ul>`;
+    }
+
     function openPanel(item) {
       focusMap(item);
+      const capacity = detailValue(item, "capacity", "30-45 uşaq");
+      const groups = detailValue(item, "groups", `${item.ages} üçün yaş qrupları`);
+      const activity = detailValue(item, "activity", [
+        "Məktəbə hazırlıq və gündəlik inkişaf məşğələləri",
+        "Oyun, rəsm, musiqi və sosial bacarıq saatları",
+        "Yaşa uyğun fiziki aktivlik və istirahət rejimi"
+      ]);
+      const certificates = detailValue(item, "certificates", [
+        "Dövlət qeydiyyatı / fəaliyyət sənədi üçün yer",
+        "Sanitar-gigiyena uyğunluğu üçün yer",
+        "Müəllim və personal sənədləri üçün yer"
+      ]);
+      const admission = detailValue(item, "admission", [
+        "Valideyn müraciəti və bağça ilə ilkin danışıq",
+        "Uşağın yaşına uyğun qrupun seçilməsi",
+        "Sənədlər və ödəniş şərtləri bağça tərəfindən təsdiqlənir"
+      ]);
+      const safety = detailValue(item, "safety", [
+        "Qapalı və nəzarətli giriş",
+        "Valideynlə gündəlik əlaqə",
+        "Uşaqlar üçün təhlükəsiz oyun zonası"
+      ]);
+      const meals = detailValue(item, "meals", "Gündəlik yemək menyusu bağçadan alınacaq və burada göstəriləcək.");
+      const staff = detailValue(item, "staff", "Müəllimlər, dayələr və əlavə mütəxəssislər haqqında məlumat ayrıca əlavə olunacaq.");
       const wa = `https://wa.me/${item.phone.replace(/\D/g, "")}?text=${encodeURIComponent("Salam. " + item.name + " haqqında məlumat almaq istəyirəm.")}`;
       document.getElementById("panel").innerHTML = `
         <div class="detail-page">
@@ -695,8 +800,22 @@
               <div class="info"><small>Yaş</small><strong>${item.ages}</strong></div>
               <div class="info"><small>İş saatı</small><strong>${item.hours}</strong></div>
               <div class="info"><small>Boş yer</small><strong>${item.places}</strong></div>
+              <div class="info"><small>Uşaq tutumu</small><strong>${capacity}</strong></div>
+              <div class="info"><small>Qruplar</small><strong>${groups}</strong></div>
             </div>
             <div class="services">${item.services.map(service => `<span class="tag">${service}</span>`).join("")}</div>
+            <div class="section-title">Fəaliyyət və proqram</div>
+            <div class="detail-section">${listHtml(activity)}</div>
+            <div class="section-title">Sertifikatlar və sənədlər</div>
+            <div class="detail-section">${listHtml(certificates)}</div>
+            <div class="section-title">Uşaq necə yerləşdirilir</div>
+            <div class="detail-section">${listHtml(admission)}</div>
+            <div class="section-title">Yemək</div>
+            <div class="detail-section"><p>${meals}</p></div>
+            <div class="section-title">Müəllim və personal</div>
+            <div class="detail-section"><p>${staff}</p></div>
+            <div class="section-title">Təhlükəsizlik</div>
+            <div class="detail-section">${listHtml(safety)}</div>
             <div class="primary-actions">
               <a class="call" href="tel:${item.phone}">Zəng et</a>
               <a class="whatsapp" href="${wa}" target="_blank" rel="noopener">WhatsApp</a>
@@ -714,6 +833,7 @@
     function closePanel() {
       document.getElementById("panel").classList.remove("open");
       document.querySelector(".sheet").classList.remove("show-detail");
+      document.querySelector(".app").classList.remove("map-focus");
       document.getElementById("backdrop").classList.remove("open");
     }
 
