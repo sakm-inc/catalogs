@@ -79,6 +79,7 @@
     .crash { background: #ffe3bc; }
     .danger { background: #e7ddff; }
     .locate { background: #dffbea; }
+    .layer { background: #dcecff; }
     .status { margin: 7px 2px 0; color: var(--muted); font-size: 11px; line-height: 1.3; min-height: 15px; }
     .leaflet-control-attribution { font-size: 10px; }
     .pulse {
@@ -123,6 +124,7 @@
       <button class="crash" data-type="crash">Qəza</button>
       <button class="danger" data-type="danger">Təhlükə</button>
       <button class="locate" id="locate">Yerim</button>
+      <button class="layer" id="layerBtn">Peyk</button>
     </div>
     <div class="status" id="status">GPS üçün icazə ver. Xəbərdarlıq əlavə etmək üçün xəritədə olduğun yeri götürür.</div>
   </div>
@@ -141,16 +143,22 @@
     const speedEl = document.getElementById("speed");
     const map = L.map("map", { zoomControl: false }).setView(BAKU, 12);
     L.control.zoom({ position: "topright" }).addTo(map);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    const roadLayer = L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
       maxZoom: 19,
-      attribution: "&copy; OpenStreetMap"
-    }).addTo(map);
+      attribution: "&copy; OpenStreetMap &copy; CARTO"
+    });
+    const satelliteLayer = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
+      maxZoom: 19,
+      attribution: "Tiles &copy; Esri"
+    });
+    roadLayer.addTo(map);
 
     let current = null;
     let userMarker = null;
     let userCircle = null;
     let destinationMarker = null;
     let routeLine = null;
+    let satelliteMode = false;
     const markers = new Map();
 
     function setStatus(text) { statusEl.textContent = text; }
@@ -286,6 +294,21 @@
       const controls = document.getElementById("controls");
       controls.classList.toggle("closed");
       event.currentTarget.textContent = controls.classList.contains("closed") ? "Aç" : "Bağla";
+    });
+    document.getElementById("layerBtn").addEventListener("click", event => {
+      event.preventDefault();
+      satelliteMode = !satelliteMode;
+      if (satelliteMode) {
+        roadLayer.remove();
+        satelliteLayer.addTo(map);
+        event.currentTarget.textContent = "Xəritə";
+        setStatus("Peyk görünüşü aktivdir.");
+      } else {
+        satelliteLayer.remove();
+        roadLayer.addTo(map);
+        event.currentTarget.textContent = "Peyk";
+        setStatus("Təmiz yol xəritəsi aktivdir.");
+      }
     });
     document.getElementById("locate").addEventListener("click", () => {
       if (current) map.setView([current.lat, current.lng], 16);
