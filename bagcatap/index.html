@@ -32,7 +32,7 @@
     .app {
       height: 100%;
       display: grid;
-      grid-template-rows: auto minmax(260px, 1fr) minmax(220px, 36vh);
+      grid-template-rows: auto 0 minmax(0, 1fr);
     }
 
     .app.map-focus {
@@ -127,7 +127,18 @@
       color: var(--green-dark);
     }
 
-    #map { width: 100%; min-height: 260px; z-index: 1; }
+    #map {
+      width: 100%;
+      min-height: 0;
+      height: 0;
+      z-index: 1;
+      overflow: hidden;
+    }
+
+    .app.map-focus #map {
+      min-height: 390px;
+      height: auto;
+    }
 
     .sheet {
       position: relative;
@@ -222,7 +233,7 @@
 
     .actions {
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-columns: 1fr 1fr;
       gap: 8px;
     }
 
@@ -334,13 +345,15 @@
       padding-top: 10px;
     }
 
-    .primary-actions a {
+    .primary-actions a, .primary-actions button {
       min-height: 46px;
       border-radius: 14px;
       display: grid;
       place-items: center;
       text-decoration: none;
       font-weight: 900;
+      border: 0;
+      font-size: 13px;
     }
 
     .whatsapp { background: #e9fbef; color: #0b7b4c; }
@@ -355,9 +368,9 @@
         grid-template-columns: 430px 1fr;
         grid-template-rows: auto 1fr;
       }
-      .app.map-focus { grid-template-rows: auto 1fr; }
       .topbar, .sheet { grid-column: 1; }
-      #map { grid-column: 2; grid-row: 1 / span 2; min-height: 100vh; }
+      #map { display: none; grid-column: 2; grid-row: 1 / span 2; min-height: 100vh; height: auto; }
+      .app.map-focus #map { display: block; }
       .sheet { min-height: 0; }
       .detail-panel {
         left: 24px;
@@ -604,7 +617,6 @@
             <div class="actions">
               <a class="call" href="tel:${item.phone}">Zəng et</a>
               <button class="detail" type="button" data-name="${item.name}">Bax</button>
-              <button class="detail map-pick" type="button" data-map-name="${item.name}">Xəritə</button>
             </div>
           </div>
         </article>
@@ -612,13 +624,11 @@
       document.querySelectorAll("[data-name]").forEach(button => {
         button.addEventListener("click", () => openPanel(kindergartens.find(item => item.name === button.dataset.name)));
       });
-      document.querySelectorAll("[data-map-name]").forEach(button => {
-        button.addEventListener("click", () => focusMap(kindergartens.find(item => item.name === button.dataset.mapName)));
-      });
     }
 
     function focusMap(item) {
       document.querySelector(".app").classList.add("map-focus");
+      closePanel();
       setTimeout(() => {
         map.invalidateSize();
         map.setView([item.lat, item.lng], 16);
@@ -627,9 +637,7 @@
     }
 
     function openPanel(item) {
-      focusMap(item);
       const wa = `https://wa.me/${item.phone.replace(/\D/g, "")}?text=${encodeURIComponent("Salam. " + item.name + " haqqında məlumat almaq istəyirəm.")}`;
-      const mapUrl = `https://www.google.com/maps/search/?api=1&query=${item.lat},${item.lng}`;
       document.getElementById("panel").innerHTML = `
         <div class="panel-head">
           <div>
@@ -650,12 +658,13 @@
         <div class="primary-actions">
           <a class="call" href="tel:${item.phone}">Zəng et</a>
           <a class="whatsapp" href="${wa}" target="_blank" rel="noopener">WhatsApp</a>
-          <a class="maplink" href="${mapUrl}" target="_blank" rel="noopener">Xəritədə aç</a>
+          <button class="maplink" type="button" id="showOnMap">Xəritədə göstər</button>
         </div>
       `;
       document.getElementById("panel").classList.add("open");
       document.getElementById("backdrop").classList.add("open");
       document.getElementById("closePanel").addEventListener("click", closePanel);
+      document.getElementById("showOnMap").addEventListener("click", () => focusMap(item));
     }
 
     function closePanel() {
