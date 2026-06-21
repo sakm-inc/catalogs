@@ -628,7 +628,6 @@
 
     function focusMap(item) {
       document.querySelector(".app").classList.add("map-focus");
-      closePanel();
       setTimeout(() => {
         map.invalidateSize();
         map.setView([item.lat, item.lng], 16);
@@ -637,6 +636,7 @@
     }
 
     function openPanel(item) {
+      focusMap(item);
       const wa = `https://wa.me/${item.phone.replace(/\D/g, "")}?text=${encodeURIComponent("Salam. " + item.name + " haqqında məlumat almaq istəyirəm.")}`;
       document.getElementById("panel").innerHTML = `
         <div class="panel-head">
