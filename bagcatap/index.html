@@ -31,6 +31,7 @@
 
     .app {
       height: 100%;
+      min-height: 100dvh;
       display: grid;
       grid-template-rows: auto 0 minmax(0, 1fr);
     }
@@ -42,7 +43,7 @@
     .topbar {
       position: relative;
       z-index: 2;
-      padding: 12px 12px 10px;
+      padding: calc(12px + env(safe-area-inset-top, 0px)) 12px 10px;
       background: linear-gradient(180deg, #ffffff 0%, rgba(255,255,255,0.94) 100%);
       border-bottom: 1px solid var(--line);
     }
@@ -172,7 +173,7 @@
 
     .list {
       overflow: auto;
-      padding: 0 12px 14px;
+      padding: 0 12px calc(18px + env(safe-area-inset-bottom, 0px));
     }
 
     .sheet.show-detail .summary,
@@ -267,7 +268,7 @@
       background: #f7fbf8;
       max-height: none;
       overflow: auto;
-      padding: 12px;
+      padding: 12px 12px calc(18px + env(safe-area-inset-bottom, 0px));
       flex: 1 1 auto;
     }
 
@@ -454,7 +455,7 @@
       position: sticky;
       bottom: 0;
       background: #fff;
-      padding-top: 10px;
+      padding: 10px 0 env(safe-area-inset-bottom, 0px);
     }
 
     .primary-actions a, .primary-actions button {
@@ -669,6 +670,8 @@
     ];
 
     let userPoint = null;
+    let activePanelName = "";
+    let closingFromPopState = false;
     const markers = new Map();
     const map = L.map("map", { zoomControl: false }).setView([40.392, 49.84], 12);
     L.control.zoom({ position: "bottomright" }).addTo(map);
@@ -792,8 +795,13 @@
       return `<ul class="detail-list">${items.map(value => `<li>${value}</li>`).join("")}</ul>`;
     }
 
-    function openPanel(item) {
+    function openPanel(item, pushHistory = true) {
+      if (!item) return;
       focusMap(item);
+      if (pushHistory && activePanelName !== item.name) {
+        history.pushState({ panel: item.name }, "", `#detail=${encodeURIComponent(item.name)}`);
+      }
+      activePanelName = item.name;
       const capacity = detailValue(item, "capacity", "30-45 uşaq");
       const groups = detailValue(item, "groups", `${item.ages} üçün yaş qrupları`);
       const activity = detailValue(item, "activity", [
@@ -882,7 +890,25 @@
       document.querySelector(".sheet").classList.remove("show-detail");
       document.querySelector(".app").classList.remove("map-focus");
       document.getElementById("backdrop").classList.remove("open");
+      activePanelName = "";
+      if (!closingFromPopState && location.hash.startsWith("#detail=")) {
+        history.back();
+      }
     }
+
+    window.addEventListener("popstate", event => {
+      if (event.state && event.state.panel) {
+        const item = kindergartens.find(entry => entry.name === event.state.panel);
+        if (item) {
+          activePanelName = "";
+          openPanel(item, false);
+        }
+        return;
+      }
+      closingFromPopState = true;
+      closePanel();
+      closingFromPopState = false;
+    });
 
     function normalizeItem(item) {
       return {
