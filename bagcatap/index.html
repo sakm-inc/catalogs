@@ -342,118 +342,6 @@
       flex: 0 0 auto;
     }
 
-    .auth-screen {
-      position: fixed;
-      inset: 0;
-      z-index: 50;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-      background: linear-gradient(180deg, #f7fbf8 0%, #e8f8ef 100%);
-    }
-
-    .auth-screen.show {
-      display: flex;
-    }
-
-    .auth-card {
-      width: min(430px, 100%);
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      background: #fff;
-      box-shadow: var(--shadow);
-      padding: 16px;
-    }
-
-    .auth-brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 12px;
-    }
-
-    .auth-brand h2 {
-      margin: 0;
-      font-size: 22px;
-    }
-
-    .auth-brand p {
-      margin: 2px 0 0;
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .auth-tabs {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 6px;
-      margin-bottom: 12px;
-    }
-
-    .auth-tabs button {
-      border: 0;
-      border-radius: 12px;
-      min-height: 40px;
-      font-weight: 900;
-      background: #eef4f1;
-      color: var(--ink);
-    }
-
-    .auth-tabs button.active {
-      background: var(--green);
-      color: #fff;
-    }
-
-    .auth-pane {
-      display: none;
-      gap: 9px;
-    }
-
-    .auth-pane.active {
-      display: grid;
-    }
-
-    .auth-pane label {
-      display: grid;
-      gap: 5px;
-      color: #405047;
-      font-size: 13px;
-      font-weight: 850;
-    }
-
-    .auth-pane input {
-      width: 100%;
-      min-height: 46px;
-      border: 1px solid var(--line);
-      border-radius: 13px;
-      padding: 0 12px;
-      font: inherit;
-      outline: none;
-    }
-
-    .auth-pane button {
-      border: 0;
-      border-radius: 14px;
-      min-height: 46px;
-      background: var(--ink);
-      color: #fff;
-      font-weight: 950;
-    }
-
-    .auth-pane button[type="button"] {
-      background: #eef4f1;
-      color: var(--green-dark);
-    }
-
-    .auth-status {
-      min-height: 18px;
-      color: var(--green-dark);
-      font-size: 13px;
-      font-weight: 850;
-      line-height: 1.35;
-    }
-
     .panel-head {
       display: flex;
       justify-content: space-between;
@@ -712,46 +600,11 @@
     <button id="notificationClose" type="button" aria-label="Bağla">×</button>
   </div>
 
-  <section class="auth-screen" id="authScreen">
-    <div class="auth-card">
-      <div class="auth-brand">
-        <div class="logo">BT</div>
-        <div>
-          <h2>BağçaTap</h2>
-          <p>Valideyn hesabı ilə davam et</p>
-        </div>
-      </div>
-      <div class="auth-tabs">
-        <button class="active" type="button" data-auth-tab="login">Giriş</button>
-        <button type="button" data-auth-tab="register">Qeydiyyat</button>
-        <button type="button" data-auth-tab="reset">Bərpa</button>
-      </div>
-      <form class="auth-pane active" id="loginForm">
-        <label>Nömrə<input id="loginPhone" inputmode="tel" autocomplete="tel" placeholder="+994..." required /></label>
-        <label>Parol<input id="loginPassword" type="password" autocomplete="current-password" required /></label>
-        <button type="submit">Daxil ol</button>
-      </form>
-      <form class="auth-pane" id="registerForm">
-        <label>Nömrə<input id="registerPhone" inputmode="tel" autocomplete="tel" placeholder="+994..." required /></label>
-        <label>Parol<input id="registerPassword" type="password" autocomplete="new-password" minlength="4" required /></label>
-        <button type="submit">Qeydiyyatdan keç</button>
-      </form>
-      <form class="auth-pane" id="resetForm">
-        <label>Nömrə<input id="resetPhone" inputmode="tel" autocomplete="tel" placeholder="+994..." required /></label>
-        <button id="requestCodeBtn" type="button">SMS kod göndər</button>
-        <label>Kod<input id="resetCode" inputmode="numeric" placeholder="6 rəqəmli kod" /></label>
-        <label>Yeni parol<input id="resetPassword" type="password" autocomplete="new-password" minlength="4" /></label>
-        <button type="submit">Parolu dəyiş</button>
-      </form>
-      <div class="auth-status" id="authStatus"></div>
-    </div>
-  </section>
-
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     const API_URL = "https://sat-chapel-division-observed.trycloudflare.com/api/bagcatap/kindergartens";
     const NOTIFICATION_URL = "https://sat-chapel-division-observed.trycloudflare.com/api/bagcatap/notifications";
-    const AUTH_BASE_URL = "https://sat-chapel-division-observed.trycloudflare.com/api/bagcatap/auth";
+    const APP_OPEN_URL = "https://sat-chapel-division-observed.trycloudflare.com/api/bagcatap/app-open";
     const VIEW_URL = "https://sat-chapel-division-observed.trycloudflare.com/api/bagcatap/views";
     let kindergartens = [
       {
@@ -889,7 +742,6 @@
     let activePanelName = "";
     let closingFromPopState = false;
     let activeNotificationId = "";
-    let currentUser = null;
     const viewedInSession = new Set();
     const markers = new Map();
     const map = L.map("map", { zoomControl: false }).setView([40.392, 49.84], 12);
@@ -1171,8 +1023,7 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             kindergartenId: item.id || "",
-            name: item.name || "",
-            userPhone: currentUser ? currentUser.phone : ""
+            name: item.name || ""
           })
         });
       } catch (error) {
@@ -1180,36 +1031,25 @@
       }
     }
 
-    function setAuthStatus(text) {
-      document.getElementById("authStatus").textContent = text;
+    function getDeviceId() {
+      let id = localStorage.getItem("bagcatapDeviceId");
+      if (!id) {
+        id = `dev-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+        localStorage.setItem("bagcatapDeviceId", id);
+      }
+      return id;
     }
 
-    function saveSession(user) {
-      currentUser = user;
-      localStorage.setItem("bagcatapUser", JSON.stringify(user));
-      document.getElementById("authScreen").classList.remove("show");
-    }
-
-    function restoreSession() {
+    async function recordAppOpen() {
       try {
-        currentUser = JSON.parse(localStorage.getItem("bagcatapUser") || "null");
+        await fetch(APP_OPEN_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ deviceId: getDeviceId() })
+        });
       } catch (error) {
-        currentUser = null;
+        console.warn("Proqram açılışı yazılmadı.");
       }
-      if (!currentUser || !currentUser.phone) {
-        document.getElementById("authScreen").classList.add("show");
-      }
-    }
-
-    async function authPost(path, payload) {
-      const response = await fetch(`${AUTH_BASE_URL}/${path}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw data;
-      return data;
     }
 
     function showNotification(item) {
@@ -1268,62 +1108,6 @@
 
     document.getElementById("backdrop").addEventListener("click", closePanel);
     document.getElementById("notificationClose").addEventListener("click", closeNotification);
-    document.querySelectorAll("[data-auth-tab]").forEach(button => {
-      button.addEventListener("click", () => {
-        document.querySelectorAll("[data-auth-tab]").forEach(item => item.classList.remove("active"));
-        document.querySelectorAll(".auth-pane").forEach(item => item.classList.remove("active"));
-        button.classList.add("active");
-        document.getElementById(`${button.dataset.authTab}Form`).classList.add("active");
-        setAuthStatus("");
-      });
-    });
-    document.getElementById("loginForm").addEventListener("submit", async event => {
-      event.preventDefault();
-      try {
-        const data = await authPost("login", {
-          phone: document.getElementById("loginPhone").value,
-          password: document.getElementById("loginPassword").value
-        });
-        saveSession(data.user);
-      } catch (error) {
-        setAuthStatus("Nömrə və ya parol yanlışdır.");
-      }
-    });
-    document.getElementById("registerForm").addEventListener("submit", async event => {
-      event.preventDefault();
-      try {
-        const data = await authPost("register", {
-          phone: document.getElementById("registerPhone").value,
-          password: document.getElementById("registerPassword").value
-        });
-        saveSession(data.user);
-      } catch (error) {
-        setAuthStatus(error && error.error === "phone exists" ? "Bu nömrə artıq qeydiyyatdan keçib." : "Qeydiyyat alınmadı.");
-      }
-    });
-    document.getElementById("requestCodeBtn").addEventListener("click", async () => {
-      try {
-        const data = await authPost("request-reset", {
-          phone: document.getElementById("resetPhone").value
-        });
-        setAuthStatus(data.smsSent ? "Kod SMS ilə göndərildi." : `Test kodu: ${data.testCode}`);
-      } catch (error) {
-        setAuthStatus("Bu nömrə ilə hesab tapılmadı.");
-      }
-    });
-    document.getElementById("resetForm").addEventListener("submit", async event => {
-      event.preventDefault();
-      try {
-        const data = await authPost("reset-password", {
-          phone: document.getElementById("resetPhone").value,
-          code: document.getElementById("resetCode").value,
-          password: document.getElementById("resetPassword").value
-        });
-        saveSession(data.user);
-      } catch (error) {
-        setAuthStatus("Kod və ya yeni parol yanlışdır.");
-      }
-    });
     document.getElementById("search").addEventListener("input", render);
     document.getElementById("district").addEventListener("change", render);
     document.getElementById("nearBtn").addEventListener("click", () => {
@@ -1342,7 +1126,7 @@
       }, { enableHighAccuracy: true, timeout: 6000 });
     });
 
-    restoreSession();
+    recordAppOpen();
     loadLiveKindergartens();
     loadNotifications();
     setInterval(loadNotifications, 60000);

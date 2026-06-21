@@ -537,6 +537,9 @@ class Handler(SimpleHTTPRequestHandler):
             view_rows.sort(key=lambda item: item["views"], reverse=True)
             self.api_json({
                 "registeredUsers": len(users),
+                "appUsers": int(stats.get("appUsers", 0) or 0),
+                "appOpens": int(stats.get("appOpens", 0) or 0),
+                "lastAppOpenAt": stats.get("lastAppOpenAt", ""),
                 "users": [public_bagcatap_user(user) for user in users],
                 "views": view_rows,
                 "totalViews": sum(item["views"] for item in view_rows),
@@ -920,6 +923,31 @@ class Handler(SimpleHTTPRequestHandler):
             row["lastViewedAt"] = now_display()
             save_bagcatap_stats(stats)
             self.api_json({"ok": True, "views": row["views"]}, 201)
+            return
+        if path == "/api/bagcatap/app-open":
+            data = self.read_body()
+            device_id = str(data.get("deviceId", "")).strip()
+            if not device_id:
+                self.api_json({"error": "device required"}, 400)
+                return
+            stats = load_bagcatap_stats()
+            devices = stats.setdefault("appDevices", {})
+            is_new = device_id not in devices
+            devices[device_id] = {
+                "firstOpenAt": devices.get(device_id, {}).get("firstOpenAt", now_display()),
+                "lastOpenAt": now_display(),
+                "opens": int(devices.get(device_id, {}).get("opens", 0) or 0) + 1,
+            }
+            stats["appUsers"] = len(devices)
+            stats["appOpens"] = int(stats.get("appOpens", 0) or 0) + 1
+            stats["lastAppOpenAt"] = now_display()
+            save_bagcatap_stats(stats)
+            self.api_json({
+                "ok": True,
+                "newDevice": is_new,
+                "appUsers": stats["appUsers"],
+                "appOpens": stats["appOpens"],
+            }, 201)
             return
         if path == "/api/inventory/products":
             data = self.read_body()
