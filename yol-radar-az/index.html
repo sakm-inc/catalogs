@@ -56,6 +56,25 @@
     }
     .search input::placeholder { color: rgba(238,251,246,.58); }
     .search button { min-height: 42px; padding: 0 13px; background: #dffbea; }
+    .results {
+      grid-column: 1 / -1;
+      display: none;
+      gap: 6px;
+      max-height: 170px;
+      overflow: auto;
+    }
+    .results.open { display: grid; }
+    .result {
+      min-height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 8px 10px;
+      color: var(--text);
+      background: rgba(255,255,255,.08);
+      text-align: left;
+      font-weight: 650;
+    }
+    .result small { display: block; margin-top: 2px; color: var(--muted); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .controls {
       position: fixed; left: 12px; right: 12px; bottom: 14px; z-index: 5;
       border: 1px solid var(--line); border-radius: 18px; background: var(--panel);
@@ -107,6 +126,7 @@
     <form class="search" id="searchForm">
       <input id="destination" autocomplete="off" placeholder="Hara gedirsən? Məs: Gənclik Mall">
       <button type="submit">Get</button>
+      <div class="results" id="results"></div>
     </form>
   </div>
   <div class="controls closed" id="controls">
@@ -189,6 +209,93 @@
         .bindPopup(`<b>${label[0]}</b><br>${new Date(alert.createdAt).toLocaleString("az-AZ")}`);
       markers.set(alert.id, marker);
     }
+    function azQueryVariants(query) {
+      const raw = query.trim();
+      const lower = raw.toLocaleLowerCase("az");
+      const replacements = [
+        ["genclik", "gənclik"], ["ganclik", "gənclik"],
+        ["nesimi", "nəsimi"], ["nerimanov", "nərimanov"],
+        ["xetai", "xətai"], ["ehmedli", "əhmədli"],
+        ["azadliq", "azadlıq"], ["inqilab", "həsən əliyev"],
+        ["sumqayit", "sumqayıt"], ["insaatcilar", "inşaatçılar"],
+        ["elmler", "elmlər"], ["bakixanov", "bakıxanov"]
+      ];
+      let fixed = lower;
+      replacements.forEach(([from, to]) => { fixed = fixed.replaceAll(from, to); });
+      return [...new Set([
+        raw,
+        fixed,
+        `${raw} Bakı`,
+        `${fixed} Bakı`,
+        `${raw} Azerbaijan`,
+        `${fixed} Azərbaycan`
+      ].filter(Boolean))];
+    }
+    function shortName(place) {
+      return place.name || place.display_name?.split(",")[0] || "Yer";
+    }
+    async function findDestinations(query) {
+      const seen = new Set();
+      const output = [];
+      for (const variant of azQueryVariants(query)) {
+        const url = new URL("https://nominatim.openstreetmap.org/search");
+        url.searchParams.set("format", "json");
+        url.searchParams.set("limit", "5");
+        url.searchParams.set("countrycodes", "az");
+        url.searchParams.set("q", variant);
+        const response = await fetch(url.toString(), { headers: { "Accept": "application/json" } });
+        const places = await response.json();
+        places.forEach(place => {
+          const key = `${place.lat},${place.lon}`;
+          if (seen.has(key)) return;
+          seen.add(key);
+          output.push({
+            name: shortName(place),
+            displayName: place.display_name,
+            lat: Number(place.lat),
+            lng: Number(place.lon)
+          });
+        });
+        if (output.length >= 5) break;
+      }
+      if (output.length) return output.slice(0, 5);
+      const photon = new URL("https://photon.komoot.io/api/");
+      photon.searchParams.set("q", `${query} Bakı`);
+      photon.searchParams.set("limit", "5");
+      photon.searchParams.set("lat", "40.4093");
+      photon.searchParams.set("lon", "49.8671");
+      const response = await fetch(photon.toString());
+      const data = await response.json();
+      return (data.features || []).filter(item => item.properties?.countrycode === "AZ").slice(0, 5).map(item => ({
+        name: item.properties.name || item.properties.street || "Yer",
+        displayName: [item.properties.name, item.properties.street, item.properties.district, item.properties.city].filter(Boolean).join(", "),
+        lat: item.geometry.coordinates[1],
+        lng: item.geometry.coordinates[0]
+      }));
+    }
+    function showResults(places) {
+      const results = document.getElementById("results");
+      results.innerHTML = "";
+      places.forEach(place => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "result";
+        button.innerHTML = `${place.name}<small>${place.displayName || ""}</small>`;
+        button.addEventListener("click", () => chooseDestination(place));
+        results.appendChild(button);
+      });
+      results.classList.toggle("open", places.length > 1);
+    }
+    async function chooseDestination(destination) {
+      document.getElementById("results").classList.remove("open");
+      document.getElementById("destination").value = destination.name;
+      if (destinationMarker) destinationMarker.remove();
+      destinationMarker = L.marker([destination.lat, destination.lng], { icon: markerIcon("danger") })
+        .addTo(map)
+        .bindPopup(`<b>Gediləcək yer</b><br>${destination.displayName || destination.name}`)
+        .openPopup();
+      await drawRoute(destination);
+    }
     async function findDestination(query) {
       const url = new URL("https://nominatim.openstreetmap.org/search");
       url.searchParams.set("format", "json");
@@ -232,17 +339,17 @@
       if (!query) return;
       setStatus("Ünvan axtarılır...");
       try {
-        const destination = await findDestination(query);
-        if (!destination) {
+        const places = await findDestinations(query);
+        if (!places.length) {
           setStatus("Yer tapılmadı. Bir az daha dəqiq yaz.");
           return;
         }
-        if (destinationMarker) destinationMarker.remove();
-        destinationMarker = L.marker([destination.lat, destination.lng], { icon: markerIcon("danger") })
-          .addTo(map)
-          .bindPopup(`<b>Gediləcək yer</b><br>${destination.name}`)
-          .openPopup();
-        await drawRoute(destination);
+        showResults(places);
+        await chooseDestination(places[0]);
+        if (places.length > 1) {
+          setStatus("Bir neçə yer tapıldı. Lazım olanı siyahıdan seç.");
+          document.getElementById("results").classList.add("open");
+        }
       } catch (error) {
         setStatus("Axtarış alınmadı. İnternet bağlantısını yoxla.");
       }
