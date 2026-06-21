@@ -1,0 +1,646 @@
+<!doctype html>
+<html lang="az">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BağçaTap</title>
+  <link rel="preconnect" href="https://unpkg.com" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    :root {
+      --ink: #15201b;
+      --muted: #6a786f;
+      --line: #dce8df;
+      --green: #19a66a;
+      --green-dark: #0b7b4c;
+      --mint: #eefbf4;
+      --yellow: #ffd166;
+      --bg: #f7fbf8;
+      --card: #ffffff;
+      --shadow: 0 14px 34px rgba(31, 52, 39, 0.16);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+      overflow: hidden;
+    }
+
+    .app {
+      height: 100%;
+      display: grid;
+      grid-template-rows: auto minmax(260px, 1fr) minmax(220px, 36vh);
+    }
+
+    .topbar {
+      position: relative;
+      z-index: 2;
+      padding: 12px 12px 10px;
+      background: linear-gradient(180deg, #ffffff 0%, rgba(255,255,255,0.94) 100%);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brandrow {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      min-width: 0;
+    }
+
+    .logo {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      background: linear-gradient(135deg, var(--green), #38c7a1);
+      box-shadow: 0 8px 18px rgba(25, 166, 106, 0.3);
+      font-weight: 900;
+      flex: 0 0 auto;
+    }
+
+    .brand h1 {
+      font-size: 18px;
+      line-height: 1.05;
+      margin: 0;
+      letter-spacing: 0;
+    }
+
+    .brand p {
+      color: var(--muted);
+      margin: 2px 0 0;
+      font-size: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .near-btn {
+      border: 0;
+      background: var(--ink);
+      color: #fff;
+      border-radius: 999px;
+      padding: 10px 12px;
+      font-weight: 800;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .searchrow {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+    }
+
+    .searchrow input, .searchrow select {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 14px;
+      min-height: 44px;
+      padding: 0 12px;
+      color: var(--ink);
+      font-size: 15px;
+      outline: none;
+      box-shadow: 0 1px 0 rgba(0,0,0,0.02);
+    }
+
+    .searchrow select {
+      width: 122px;
+      font-weight: 700;
+      color: var(--green-dark);
+    }
+
+    #map { width: 100%; min-height: 260px; z-index: 1; }
+
+    .sheet {
+      position: relative;
+      z-index: 3;
+      overflow: hidden;
+      background: var(--card);
+      border-top: 1px solid var(--line);
+      box-shadow: 0 -12px 28px rgba(34, 49, 39, 0.08);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px 8px;
+      flex: 0 0 auto;
+    }
+
+    .summary strong {
+      display: block;
+      font-size: 16px;
+    }
+
+    .summary span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .list {
+      overflow: auto;
+      padding: 0 12px 14px;
+    }
+
+    .card {
+      display: grid;
+      grid-template-columns: 70px 1fr;
+      gap: 12px;
+      padding: 12px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .photo {
+      width: 70px;
+      height: 70px;
+      border-radius: 8px;
+      background:
+        radial-gradient(circle at 68% 22%, rgba(255,209,102,.95) 0 12px, transparent 13px),
+        linear-gradient(135deg, #dff7ea, #b8edd4);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .photo::after {
+      content: "";
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      bottom: 11px;
+      height: 26px;
+      border-radius: 7px 7px 4px 4px;
+      background: #fff;
+      box-shadow: 0 -18px 0 -8px #63d59d, 17px -10px 0 -8px #ff8f70;
+    }
+
+    .card h2 {
+      margin: 0 0 4px;
+      font-size: 15px;
+      line-height: 1.2;
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+      margin-bottom: 8px;
+    }
+
+    .tags {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .tag {
+      font-size: 11px;
+      padding: 5px 7px;
+      border-radius: 999px;
+      background: var(--mint);
+      color: var(--green-dark);
+      font-weight: 700;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .actions a, .actions button {
+      border: 0;
+      border-radius: 12px;
+      min-height: 38px;
+      display: grid;
+      place-items: center;
+      text-decoration: none;
+      font-weight: 850;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .call { background: var(--green); color: #fff; }
+    .detail { background: #f0f4f1; color: var(--ink); }
+
+    .detail-panel {
+      position: fixed;
+      inset: auto 0 0 0;
+      z-index: 10;
+      transform: translateY(105%);
+      transition: transform .22s ease;
+      background: #fff;
+      border-radius: 22px 22px 0 0;
+      box-shadow: var(--shadow);
+      max-height: 78vh;
+      overflow: auto;
+      padding: 16px;
+    }
+
+    .detail-panel.open { transform: translateY(0); }
+    .backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 9;
+      background: rgba(14, 28, 20, 0.32);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .18s ease;
+    }
+    .backdrop.open { opacity: 1; pointer-events: auto; }
+
+    .panel-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+
+    .panel-head h2 {
+      margin: 0;
+      font-size: 21px;
+      line-height: 1.1;
+    }
+
+    .close {
+      width: 38px;
+      height: 38px;
+      border: 0;
+      border-radius: 50%;
+      background: #eef3ef;
+      color: var(--ink);
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin: 12px 0;
+    }
+
+    .info {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      background: #fbfdfb;
+    }
+
+    .info small {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      margin-bottom: 4px;
+    }
+
+    .info strong {
+      font-size: 14px;
+    }
+
+    .services {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin: 10px 0 14px;
+    }
+
+    .primary-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      position: sticky;
+      bottom: 0;
+      background: #fff;
+      padding-top: 10px;
+    }
+
+    .primary-actions a {
+      min-height: 46px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      text-decoration: none;
+      font-weight: 900;
+    }
+
+    .whatsapp { background: #e9fbef; color: #0b7b4c; }
+
+    .leaflet-control-attribution { font-size: 9px; }
+
+    @media (min-width: 820px) {
+      body { overflow: auto; }
+      .app {
+        min-height: 100vh;
+        grid-template-columns: 430px 1fr;
+        grid-template-rows: auto 1fr;
+      }
+      .topbar, .sheet { grid-column: 1; }
+      #map { grid-column: 2; grid-row: 1 / span 2; min-height: 100vh; }
+      .sheet { min-height: 0; }
+      .detail-panel {
+        left: 24px;
+        right: auto;
+        bottom: 24px;
+        width: 390px;
+        border-radius: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brandrow">
+        <div class="brand">
+          <div class="logo">BT</div>
+          <div>
+            <h1>BağçaTap</h1>
+            <p>Bakıda yaxın bağçalar</p>
+          </div>
+        </div>
+        <button class="near-btn" id="nearBtn">Yaxınımda</button>
+      </div>
+      <div class="searchrow">
+        <input id="search" type="search" placeholder="Bağça, rayon və ya xidmət axtar" autocomplete="off" />
+        <select id="district">
+          <option value="">Hamısı</option>
+          <option>Nərimanov</option>
+          <option>Nəsimi</option>
+          <option>Yasamal</option>
+          <option>Xətai</option>
+          <option>Binəqədi</option>
+        </select>
+      </div>
+    </header>
+
+    <div id="map"></div>
+
+    <section class="sheet">
+      <div class="summary">
+        <div>
+          <strong id="countLabel">6 bağça</strong>
+          <span id="sortLabel">Bakı üzrə nümunə məlumatlar</span>
+        </div>
+      </div>
+      <div class="list" id="list"></div>
+    </section>
+  </main>
+
+  <div class="backdrop" id="backdrop"></div>
+  <aside class="detail-panel" id="panel"></aside>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const kindergartens = [
+      {
+        name: "Günəş Uşaq Bağçası",
+        district: "Nərimanov",
+        address: "Nərimanov r., Təbriz küçəsi 74",
+        lat: 40.3981,
+        lng: 49.8687,
+        phone: "+994552201202",
+        price: "450 AZN / ay",
+        ages: "2-6 yaş",
+        hours: "08:00 - 18:30",
+        places: "4 boş yer",
+        services: ["Yemək", "İngilis dili", "Kamera", "Hazırlıq"],
+        note: "Kiçik qruplar, sakit məhəllə və valideynlə gündəlik əlaqə."
+      },
+      {
+        name: "Balaca Dünya",
+        district: "Yasamal",
+        address: "Yasamal r., İnşaatçılar pr. 32",
+        lat: 40.3846,
+        lng: 49.8023,
+        phone: "+994552201202",
+        price: "390 AZN / ay",
+        ages: "3-6 yaş",
+        hours: "08:30 - 18:00",
+        places: "7 boş yer",
+        services: ["Məktəbə hazırlıq", "Rəsm", "Musiqi"],
+        note: "Məktəbə hazırlıq və yaradıcılıq dərslərinə fokuslanan bağça."
+      },
+      {
+        name: "Ağıllı Balalar",
+        district: "Nəsimi",
+        address: "Nəsimi r., 28 May ətrafı",
+        lat: 40.3798,
+        lng: 49.8499,
+        phone: "+994552201202",
+        price: "520 AZN / ay",
+        ages: "1.5-6 yaş",
+        hours: "08:00 - 19:00",
+        places: "3 boş yer",
+        services: ["Kamera", "Loqoped", "İngilis dili", "Servis"],
+        note: "Mərkəzə yaxın, işləyən valideynlər üçün uzun iş saatı."
+      },
+      {
+        name: "Sevinc Bağçası",
+        district: "Xətai",
+        address: "Xətai r., Ağ Şəhər yaxınlığı",
+        lat: 40.3812,
+        lng: 49.8758,
+        phone: "+994552201202",
+        price: "480 AZN / ay",
+        ages: "2-5 yaş",
+        hours: "08:00 - 18:00",
+        places: "5 boş yer",
+        services: ["Yemək", "Rəqs", "Psixoloq"],
+        note: "Rahat sinif otaqları və oyun zonası olan ailə tipli bağça."
+      },
+      {
+        name: "Aylin Kids",
+        district: "Binəqədi",
+        address: "Binəqədi r., Azadlıq metrosu yaxınlığı",
+        lat: 40.4174,
+        lng: 49.8421,
+        phone: "+994552201202",
+        price: "360 AZN / ay",
+        ages: "2-6 yaş",
+        hours: "09:00 - 18:00",
+        places: "9 boş yer",
+        services: ["Servis", "Yemək", "Rəsm"],
+        note: "Qiyməti daha rahat, servis seçimi olan bağça."
+      },
+      {
+        name: "Zəka Kids",
+        district: "Nərimanov",
+        address: "Nərimanov r., Gənclik metrosu yaxınlığı",
+        lat: 40.4008,
+        lng: 49.8516,
+        phone: "+994552201202",
+        price: "550 AZN / ay",
+        ages: "3-6 yaş",
+        hours: "08:00 - 18:30",
+        places: "2 boş yer",
+        services: ["İngilis dili", "Robotika", "Kamera", "Hazırlıq"],
+        note: "Texnologiya və məktəbə hazırlıq proqramı olan premium bağça."
+      }
+    ];
+
+    let userPoint = null;
+    const markers = new Map();
+    const map = L.map("map", { zoomControl: false }).setView([40.392, 49.84], 12);
+    L.control.zoom({ position: "bottomright" }).addTo(map);
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
+      maxZoom: 20,
+      attribution: "© OpenStreetMap © CARTO"
+    }).addTo(map);
+
+    const icon = L.divIcon({
+      className: "",
+      html: '<div style="width:30px;height:30px;border-radius:12px;background:#19a66a;border:3px solid white;box-shadow:0 8px 18px rgba(0,0,0,.25);display:grid;place-items:center;color:white;font-weight:900;font-size:13px">B</div>',
+      iconSize: [30, 30],
+      iconAnchor: [15, 15]
+    });
+
+    const userIcon = L.divIcon({
+      className: "",
+      html: '<div style="width:22px;height:22px;border-radius:50%;background:#2f80ed;border:4px solid white;box-shadow:0 0 0 8px rgba(47,128,237,.18)"></div>',
+      iconSize: [22, 22],
+      iconAnchor: [11, 11]
+    });
+
+    function distanceKm(a, b) {
+      if (!a || !b) return null;
+      const r = 6371;
+      const dLat = (b.lat - a.lat) * Math.PI / 180;
+      const dLng = (b.lng - a.lng) * Math.PI / 180;
+      const lat1 = a.lat * Math.PI / 180;
+      const lat2 = b.lat * Math.PI / 180;
+      const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+      return 2 * r * Math.asin(Math.sqrt(h));
+    }
+
+    function formatDistance(km) {
+      if (km === null) return "";
+      if (km < 1) return `${Math.round(km * 1000)} m`;
+      return `${km.toFixed(1)} km`;
+    }
+
+    function filteredItems() {
+      const q = document.getElementById("search").value.trim().toLowerCase();
+      const district = document.getElementById("district").value;
+      return kindergartens
+        .map(item => ({ ...item, distance: distanceKm(userPoint, item) }))
+        .filter(item => !district || item.district === district)
+        .filter(item => {
+          const text = [item.name, item.district, item.address, item.price, item.ages, item.services.join(" ")].join(" ").toLowerCase();
+          return !q || text.includes(q);
+        })
+        .sort((a, b) => {
+          if (a.distance === null || b.distance === null) return a.name.localeCompare(b.name, "az");
+          return a.distance - b.distance;
+        });
+    }
+
+    function markerFor(item) {
+      if (markers.has(item.name)) return markers.get(item.name);
+      const marker = L.marker([item.lat, item.lng], { icon }).addTo(map);
+      marker.on("click", () => openPanel(item));
+      markers.set(item.name, marker);
+      return marker;
+    }
+
+    function render() {
+      const items = filteredItems();
+      markers.forEach((marker, key) => {
+        if (!items.some(item => item.name === key)) map.removeLayer(marker);
+      });
+      items.forEach(item => markerFor(item).addTo(map));
+      document.getElementById("countLabel").textContent = `${items.length} bağça`;
+      document.getElementById("sortLabel").textContent = userPoint ? "Sənə yaxınlıq üzrə düzülüb" : "Bakı üzrə nümunə məlumatlar";
+      document.getElementById("list").innerHTML = items.map(item => `
+        <article class="card">
+          <div class="photo"></div>
+          <div>
+            <h2>${item.name}</h2>
+            <div class="meta">${item.district} · ${item.price}${item.distance !== null ? ` · ${formatDistance(item.distance)}` : ""}<br>${item.address}</div>
+            <div class="tags">${item.services.slice(0, 3).map(service => `<span class="tag">${service}</span>`).join("")}</div>
+            <div class="actions">
+              <a class="call" href="tel:${item.phone}">Zəng et</a>
+              <button class="detail" type="button" data-name="${item.name}">Bax</button>
+            </div>
+          </div>
+        </article>
+      `).join("");
+      document.querySelectorAll("[data-name]").forEach(button => {
+        button.addEventListener("click", () => openPanel(kindergartens.find(item => item.name === button.dataset.name)));
+      });
+    }
+
+    function openPanel(item) {
+      map.setView([item.lat, item.lng], 15);
+      const wa = `https://wa.me/${item.phone.replace(/\D/g, "")}?text=${encodeURIComponent("Salam. " + item.name + " haqqında məlumat almaq istəyirəm.")}`;
+      document.getElementById("panel").innerHTML = `
+        <div class="panel-head">
+          <div>
+            <h2>${item.name}</h2>
+            <div class="meta">${item.address}${item.distance !== null ? ` · ${formatDistance(item.distance)}` : ""}</div>
+          </div>
+          <button class="close" id="closePanel" type="button">×</button>
+        </div>
+        <div class="photo" style="width:100%;height:130px;border-radius:8px;margin-bottom:12px"></div>
+        <p class="meta" style="font-size:14px;color:#425047">${item.note}</p>
+        <div class="info-grid">
+          <div class="info"><small>Qiymət</small><strong>${item.price}</strong></div>
+          <div class="info"><small>Yaş</small><strong>${item.ages}</strong></div>
+          <div class="info"><small>İş saatı</small><strong>${item.hours}</strong></div>
+          <div class="info"><small>Boş yer</small><strong>${item.places}</strong></div>
+        </div>
+        <div class="services">${item.services.map(service => `<span class="tag">${service}</span>`).join("")}</div>
+        <div class="primary-actions">
+          <a class="call" href="tel:${item.phone}">Zəng et</a>
+          <a class="whatsapp" href="${wa}" target="_blank" rel="noopener">WhatsApp</a>
+        </div>
+      `;
+      document.getElementById("panel").classList.add("open");
+      document.getElementById("backdrop").classList.add("open");
+      document.getElementById("closePanel").addEventListener("click", closePanel);
+    }
+
+    function closePanel() {
+      document.getElementById("panel").classList.remove("open");
+      document.getElementById("backdrop").classList.remove("open");
+    }
+
+    document.getElementById("backdrop").addEventListener("click", closePanel);
+    document.getElementById("search").addEventListener("input", render);
+    document.getElementById("district").addEventListener("change", render);
+    document.getElementById("nearBtn").addEventListener("click", () => {
+      if (!navigator.geolocation) return;
+      navigator.geolocation.getCurrentPosition(pos => {
+        userPoint = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        L.marker([userPoint.lat, userPoint.lng], { icon: userIcon }).addTo(map);
+        map.setView([userPoint.lat, userPoint.lng], 14);
+        render();
+      }, () => {
+        userPoint = { lat: 40.395, lng: 49.84 };
+        render();
+      }, { enableHighAccuracy: true, timeout: 6000 });
+    });
+
+    render();
+  </script>
+</body>
+</html>
