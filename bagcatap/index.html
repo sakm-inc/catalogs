@@ -36,7 +36,7 @@
     }
 
     .app.map-focus {
-      grid-template-rows: auto minmax(390px, 66vh) minmax(120px, 16vh);
+      grid-template-rows: auto minmax(280px, 40vh) minmax(0, 1fr);
     }
 
     .topbar {
@@ -175,6 +175,11 @@
       padding: 0 12px 14px;
     }
 
+    .sheet.show-detail .summary,
+    .sheet.show-detail .list {
+      display: none;
+    }
+
     .card {
       display: grid;
       grid-template-columns: 70px 1fr;
@@ -253,20 +258,15 @@
     .detail { background: #f0f4f1; color: var(--ink); }
 
     .detail-panel {
-      position: fixed;
-      inset: auto 0 0 0;
-      z-index: 10;
-      transform: translateY(105%);
-      transition: transform .22s ease;
+      display: none;
       background: #fff;
-      border-radius: 22px 22px 0 0;
-      box-shadow: var(--shadow);
-      max-height: 46vh;
+      max-height: none;
       overflow: auto;
       padding: 14px 14px 12px;
+      flex: 1 1 auto;
     }
 
-    .detail-panel.open { transform: translateY(0); }
+    .detail-panel.open { display: block; }
     .backdrop {
       position: fixed;
       inset: 0;
@@ -373,9 +373,6 @@
       .app.map-focus #map { display: block; }
       .sheet { min-height: 0; }
       .detail-panel {
-        left: 24px;
-        right: auto;
-        bottom: 24px;
         width: 390px;
         border-radius: 20px;
       }
@@ -418,11 +415,11 @@
         </div>
       </div>
       <div class="list" id="list"></div>
+      <aside class="detail-panel" id="panel"></aside>
     </section>
   </main>
 
   <div class="backdrop" id="backdrop"></div>
-  <aside class="detail-panel" id="panel"></aside>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
@@ -646,7 +643,7 @@
           </div>
           <button class="close" id="closePanel" type="button">×</button>
         </div>
-        <div class="photo" style="width:100%;height:86px;border-radius:8px;margin-bottom:8px;background-image:url('${item.image}')"></div>
+        <div class="photo" style="width:100%;height:150px;border-radius:8px;margin-bottom:10px;background-image:url('${item.image}')"></div>
         <p class="meta" style="font-size:14px;color:#425047">${item.note}</p>
         <div class="info-grid">
           <div class="info"><small>Qiymət</small><strong>${item.price}</strong></div>
@@ -662,13 +659,14 @@
         </div>
       `;
       document.getElementById("panel").classList.add("open");
-      document.getElementById("backdrop").classList.add("open");
+      document.querySelector(".sheet").classList.add("show-detail");
       document.getElementById("closePanel").addEventListener("click", closePanel);
       document.getElementById("showOnMap").addEventListener("click", () => focusMap(item));
     }
 
     function closePanel() {
       document.getElementById("panel").classList.remove("open");
+      document.querySelector(".sheet").classList.remove("show-detail");
       document.getElementById("backdrop").classList.remove("open");
     }
 
