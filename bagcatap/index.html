@@ -34,6 +34,7 @@
       min-height: 100dvh;
       display: grid;
       grid-template-rows: auto 0 minmax(0, 1fr);
+      transition: grid-template-rows .22s ease;
     }
 
     .app.map-focus {
@@ -139,6 +140,14 @@
     .app.map-focus #map {
       min-height: 390px;
       height: auto;
+    }
+
+    .app.map-focus.map-compact {
+      grid-template-rows: auto minmax(132px, 18vh) minmax(0, 1fr);
+    }
+
+    .app.map-focus.map-compact #map {
+      min-height: 132px;
     }
 
     .sheet {
@@ -533,6 +542,7 @@
       .topbar, .sheet { grid-column: 1; }
       #map { display: none; grid-column: 2; grid-row: 1 / span 2; min-height: 100vh; height: auto; }
       .app.map-focus #map { display: block; }
+      .app.map-focus.map-compact #map { min-height: 100vh; }
       .sheet { min-height: 0; }
       .detail-panel {
         width: 430px;
@@ -832,6 +842,7 @@
 
     function focusMap(item) {
       document.querySelector(".app").classList.add("map-focus");
+      document.querySelector(".app").classList.remove("map-compact");
       setTimeout(() => {
         map.invalidateSize();
         map.setView([item.lat, item.lng], 16);
@@ -851,6 +862,18 @@
 
     function listHtml(items) {
       return `<ul class="detail-list">${items.map(value => `<li>${value}</li>`).join("")}</ul>`;
+    }
+
+    function handleDetailScroll() {
+      const panel = document.getElementById("panel");
+      const app = document.querySelector(".app");
+      if (!panel.classList.contains("open")) return;
+      if (panel.scrollTop > 28) {
+        app.classList.add("map-compact");
+      } else {
+        app.classList.remove("map-compact");
+      }
+      setTimeout(() => map.invalidateSize(), 80);
     }
 
     function openPanel(item, pushHistory = true) {
@@ -930,7 +953,11 @@
           </div>
         </div>
       `;
-      document.getElementById("panel").classList.add("open");
+      const panel = document.getElementById("panel");
+      panel.scrollTop = 0;
+      panel.classList.add("open");
+      panel.removeEventListener("scroll", handleDetailScroll);
+      panel.addEventListener("scroll", handleDetailScroll, { passive: true });
       document.querySelector(".sheet").classList.add("show-detail");
       document.querySelectorAll("[data-home-return]").forEach(button => {
         button.addEventListener("click", closePanel);
@@ -947,6 +974,7 @@
       document.getElementById("panel").classList.remove("open");
       document.querySelector(".sheet").classList.remove("show-detail");
       document.querySelector(".app").classList.remove("map-focus");
+      document.querySelector(".app").classList.remove("map-compact");
       document.getElementById("backdrop").classList.remove("open");
       activePanelName = "";
       if (!closingFromPopState && location.hash.startsWith("#detail=")) {
