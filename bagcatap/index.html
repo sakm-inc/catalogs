@@ -143,11 +143,11 @@
     }
 
     .app.map-focus.map-compact {
-      grid-template-rows: auto minmax(132px, 18vh) minmax(0, 1fr);
+      grid-template-rows: auto minmax(86px, 11vh) minmax(0, 1fr);
     }
 
     .app.map-focus.map-compact #map {
-      min-height: 132px;
+      min-height: 86px;
     }
 
     .sheet {
@@ -871,7 +871,7 @@
       const panel = document.getElementById("panel");
       const app = document.querySelector(".app");
       if (!panel.classList.contains("open")) return;
-      if (panel.scrollTop > 28) {
+      if (panel.scrollTop > 8) {
         app.classList.add("map-compact");
       } else {
         app.classList.remove("map-compact");
@@ -960,6 +960,7 @@
       const panel = document.getElementById("panel");
       panel.scrollTop = 0;
       panel.classList.add("open");
+      document.querySelector(".app").classList.add("map-compact");
       panel.removeEventListener("scroll", handleDetailScroll);
       panel.addEventListener("scroll", handleDetailScroll, { passive: true });
       document.querySelector(".sheet").classList.add("show-detail");
