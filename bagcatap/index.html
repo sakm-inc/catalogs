@@ -1041,12 +1041,39 @@
       return id;
     }
 
+    function getCurrentLocationForStats() {
+      if (!navigator.geolocation) return Promise.resolve(null);
+      return new Promise(resolve => {
+        let settled = false;
+        const finish = value => {
+          if (settled) return;
+          settled = true;
+          resolve(value);
+        };
+        navigator.geolocation.getCurrentPosition(pos => {
+          finish({
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+            accuracy: pos.coords.accuracy || 0
+          });
+        }, () => finish(null), { enableHighAccuracy: true, timeout: 6000, maximumAge: 60000 });
+        setTimeout(() => finish(null), 7000);
+      });
+    }
+
     async function recordAppOpen() {
       try {
+        const currentLocation = await getCurrentLocationForStats();
+        const payload = { deviceId: getDeviceId() };
+        if (currentLocation) {
+          payload.lat = currentLocation.lat;
+          payload.lng = currentLocation.lng;
+          payload.accuracy = currentLocation.accuracy;
+        }
         await fetch(APP_OPEN_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ deviceId: getDeviceId() })
+          body: JSON.stringify(payload)
         });
       } catch (error) {
         console.warn("Proqram açılışı yazılmadı.");

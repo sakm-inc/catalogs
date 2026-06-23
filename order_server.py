@@ -8,6 +8,8 @@ import json
 import os
 import re
 import secrets
+import subprocess
+import tempfile
 import time
 from pathlib import Path
 
@@ -26,6 +28,7 @@ INVENTORY_ATTENDANCE_FILE = INVENTORY_DIR / "attendance.json"
 BAGCATAP_DIR = Path(__file__).parent / "bagcatap"
 BAGCATAP_FILE = BAGCATAP_DIR / "kindergartens.json"
 BAGCATAP_NOTIFICATIONS_FILE = BAGCATAP_DIR / "notifications.json"
+BAGCATAP_DEVICE_TOKENS_FILE = BAGCATAP_DIR / "device_tokens.json"
 BAGCATAP_USERS_FILE = BAGCATAP_DIR / "users.json"
 BAGCATAP_RESET_CODES_FILE = BAGCATAP_DIR / "reset_codes.json"
 BAGCATAP_STATS_FILE = BAGCATAP_DIR / "stats.json"
@@ -279,6 +282,15 @@ def save_bagcatap_notifications(items):
     save_json_file(BAGCATAP_NOTIFICATIONS_FILE, items[:100])
 
 
+def load_bagcatap_device_tokens():
+    tokens = load_json_file(BAGCATAP_DEVICE_TOKENS_FILE, [])
+    return tokens if isinstance(tokens, list) else []
+
+
+def save_bagcatap_device_tokens(tokens):
+    save_json_file(BAGCATAP_DEVICE_TOKENS_FILE, tokens[-10000:])
+
+
 def load_bagcatap_users():
     users = load_json_file(BAGCATAP_USERS_FILE, [])
     return users if isinstance(users, list) else []
@@ -302,6 +314,7 @@ def load_bagcatap_stats():
     if not isinstance(stats, dict):
         stats = {}
     stats.setdefault("kindergartenViews", {})
+    stats.setdefault("appDevices", {})
     return stats
 
 
@@ -313,6 +326,115 @@ def safe_upload_name(value):
     stem = Path(str(value or "bagca")).stem.lower()
     stem = re.sub(r"[^a-z0-9]+", "-", stem).strip("-")[:40] or "bagca"
     return stem
+
+
+def b64url(data):
+    return base64.urlsafe_b64encode(data).rstrip(b"=").decode("ascii")
+
+
+def fcm_service_account_path():
+    path = os.environ.get("BAGCATAP_FCM_SERVICE_ACCOUNT") or os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
+    if not path:
+        return None
+    service_account = Path(path).expanduser()
+    return service_account if service_account.exists() else None
+
+
+def fcm_access_token(service_account):
+    data = json.loads(service_account.read_text(encoding="utf-8"))
+    now = int(time.time())
+    header = b64url(json.dumps({"alg": "RS256", "typ": "JWT"}).encode("utf-8"))
+    claims = {
+        "iss": data["client_email"],
+        "scope": "https://www.googleapis.com/auth/firebase.messaging",
+        "aud": "https://oauth2.googleapis.com/token",
+        "iat": now,
+        "exp": now + 3600,
+    }
+    payload = b64url(json.dumps(claims, separators=(",", ":")).encode("utf-8"))
+    signing_input = f"{header}.{payload}".encode("utf-8")
+    with tempfile.NamedTemporaryFile("w", delete=False) as key_file:
+        key_file.write(data["private_key"])
+        key_path = key_file.name
+    try:
+        result = subprocess.run(
+            ["openssl", "dgst", "-sha256", "-sign", key_path],
+            input=signing_input,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            check=True,
+        )
+    finally:
+        try:
+            os.unlink(key_path)
+        except OSError:
+            pass
+    assertion = f"{header}.{payload}.{b64url(result.stdout)}"
+    request = Request(
+        "https://oauth2.googleapis.com/token",
+        data=(
+            "grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer"
+            + "&assertion="
+            + assertion
+        ).encode("utf-8"),
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
+    with urlopen(request, timeout=12) as response:
+        token_data = json.loads(response.read().decode("utf-8"))
+    return data["project_id"], token_data["access_token"]
+
+
+def send_bagcatap_push(title, message):
+    tokens = [item for item in load_bagcatap_device_tokens() if item.get("active", True) and item.get("token")]
+    if not tokens:
+        return {"configured": bool(fcm_service_account_path()), "sent": 0, "failed": 0, "reason": "no devices"}
+    service_account = fcm_service_account_path()
+    if not service_account:
+        return {"configured": False, "sent": 0, "failed": 0, "reason": "push not connected"}
+
+    try:
+        project_id, access_token = fcm_access_token(service_account)
+    except Exception:
+        return {"configured": False, "sent": 0, "failed": len(tokens), "reason": "push auth failed"}
+
+    sent = 0
+    failed = 0
+    kept = []
+    for token_row in tokens:
+        token = token_row.get("token", "")
+        payload = {
+            "message": {
+                "token": token,
+                "notification": {"title": title, "body": message},
+                "android": {
+                    "priority": "HIGH",
+                    "notification": {
+                        "channel_id": "bagcatap_notifications",
+                        "click_action": "OPEN_BAGCATAP",
+                    },
+                },
+                "data": {"source": "bagcatap_admin", "createdAt": now_display()},
+            }
+        }
+        request = Request(
+            f"https://fcm.googleapis.com/v1/projects/{project_id}/messages:send",
+            data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+            headers={
+                "Authorization": f"Bearer {access_token}",
+                "Content-Type": "application/json; charset=utf-8",
+            },
+        )
+        try:
+            with urlopen(request, timeout=12):
+                sent += 1
+                token_row["lastPushAt"] = now_display()
+                kept.append(token_row)
+        except Exception:
+            failed += 1
+            token_row["lastPushFailedAt"] = now_display()
+            kept.append(token_row)
+    save_bagcatap_device_tokens(kept)
+    return {"configured": True, "sent": sent, "failed": failed, "devices": len(tokens)}
 
 
 def image_extension(mime, filename):
@@ -553,6 +675,7 @@ class Handler(SimpleHTTPRequestHandler):
             users = load_bagcatap_users()
             stats = load_bagcatap_stats()
             view_rows = []
+            device_rows = []
             by_id = {str(item.get("id", "")): item for item in load_bagcatap_kindergartens()}
             for kindergarten_id, row in stats.get("kindergartenViews", {}).items():
                 kindergarten = by_id.get(str(kindergarten_id), {})
@@ -563,12 +686,32 @@ class Handler(SimpleHTTPRequestHandler):
                     "lastViewedAt": row.get("lastViewedAt", ""),
                 })
             view_rows.sort(key=lambda item: item["views"], reverse=True)
+            for device_id, row in stats.get("appDevices", {}).items():
+                lat = row.get("lat")
+                lng = row.get("lng")
+                has_location = isinstance(lat, (int, float)) and isinstance(lng, (int, float))
+                device_rows.append({
+                    "deviceId": device_id,
+                    "shortId": str(device_id)[-6:],
+                    "firstOpenAt": row.get("firstOpenAt", ""),
+                    "lastOpenAt": row.get("lastOpenAt", ""),
+                    "opens": int(row.get("opens", 0) or 0),
+                    "lat": lat if has_location else None,
+                    "lng": lng if has_location else None,
+                    "accuracy": row.get("accuracy"),
+                    "locationAt": row.get("locationAt", ""),
+                    "mapUrl": f"https://maps.google.com/?q={lat},{lng}" if has_location else "",
+                })
+            device_rows.sort(key=lambda item: item.get("lastOpenAt", ""), reverse=True)
             self.api_json({
                 "registeredUsers": len(users),
                 "appUsers": int(stats.get("appUsers", 0) or 0),
                 "appOpens": int(stats.get("appOpens", 0) or 0),
+                "pushDevices": len(load_bagcatap_device_tokens()),
+                "pushConnected": bool(fcm_service_account_path()),
                 "lastAppOpenAt": stats.get("lastAppOpenAt", ""),
                 "users": [public_bagcatap_user(user) for user in users],
+                "devices": device_rows,
                 "views": view_rows,
                 "totalViews": sum(item["views"] for item in view_rows),
             })
@@ -836,7 +979,30 @@ class Handler(SimpleHTTPRequestHandler):
             items = load_bagcatap_notifications()
             items.insert(0, item)
             save_bagcatap_notifications(items)
-            self.api_json(public_bagcatap_notification(item), 201)
+            push = send_bagcatap_push(title, message) if item["active"] else {"sent": 0, "failed": 0, "skipped": "inactive"}
+            result = public_bagcatap_notification(item)
+            result["push"] = push
+            self.api_json(result, 201)
+            return
+        if path == "/api/bagcatap/device-token":
+            data = self.read_body()
+            token = str(data.get("token", "")).strip()
+            device_id = str(data.get("deviceId", "")).strip()
+            app_version = str(data.get("appVersion", "")).strip()
+            if not token:
+                self.api_json({"error": "token required"}, 400)
+                return
+            tokens = [item for item in load_bagcatap_device_tokens() if item.get("token") != token]
+            tokens.append({
+                "token": token,
+                "deviceId": device_id,
+                "appVersion": app_version,
+                "active": True,
+                "registeredAt": now_display(),
+                "lastSeenAt": now_display(),
+            })
+            save_bagcatap_device_tokens(tokens)
+            self.api_json({"ok": True, "devices": len(tokens)}, 201)
             return
         if path == "/api/bagcatap/upload-image":
             data = self.read_body()
@@ -995,11 +1161,21 @@ class Handler(SimpleHTTPRequestHandler):
             stats = load_bagcatap_stats()
             devices = stats.setdefault("appDevices", {})
             is_new = device_id not in devices
-            devices[device_id] = {
-                "firstOpenAt": devices.get(device_id, {}).get("firstOpenAt", now_display()),
-                "lastOpenAt": now_display(),
-                "opens": int(devices.get(device_id, {}).get("opens", 0) or 0) + 1,
-            }
+            row = devices.get(device_id, {})
+            row["firstOpenAt"] = row.get("firstOpenAt", now_display())
+            row["lastOpenAt"] = now_display()
+            row["opens"] = int(row.get("opens", 0) or 0) + 1
+            try:
+                lat = float(data.get("lat"))
+                lng = float(data.get("lng"))
+                if -90 <= lat <= 90 and -180 <= lng <= 180:
+                    row["lat"] = round(lat, 6)
+                    row["lng"] = round(lng, 6)
+                    row["accuracy"] = round(float(data.get("accuracy", 0) or 0), 1)
+                    row["locationAt"] = now_display()
+            except (TypeError, ValueError):
+                pass
+            devices[device_id] = row
             stats["appUsers"] = len(devices)
             stats["appOpens"] = int(stats.get("appOpens", 0) or 0) + 1
             stats["lastAppOpenAt"] = now_display()

@@ -71,8 +71,13 @@
         <div class="stat-box"><small>Proqrama daxil olan telefon</small><strong id="appUsers">0</strong></div>
         <div class="stat-box"><small>Ümumi proqram açılışı</small><strong id="appOpens">0</strong></div>
         <div class="stat-box"><small>Ümumi bağça baxışı</small><strong id="totalViews">0</strong></div>
+        <div class="stat-box"><small>Push qeydiyyatlı telefon</small><strong id="pushDevices">0</strong></div>
+        <div class="stat-box"><small>Lokasiyası görünən telefon</small><strong id="locationDevices">0</strong></div>
         <div class="stat-box"><small>Ən çox baxılan</small><strong id="topViewed">-</strong></div>
       </div>
+      <h3>Telefon lokasiyaları</h3>
+      <div class="list" id="devicesList" style="margin-top:12px"></div>
+      <h3>Bağça baxışları</h3>
       <div class="list" id="viewsList" style="margin-top:12px"></div>
       <div class="status" id="statsStatus"></div>
     </section>
@@ -131,7 +136,7 @@
 
     <section class="card">
       <h2>Bildiriş göndər</h2>
-      <p>Buradan göndərilən mesaj APK açıq olanda və istifadəçi tətbiqə girəndə yuxarıda görünəcək.</p>
+      <p>Buradan göndərilən mesaj qeydiyyatlı telefonlara birbaşa push bildiriş kimi göndərilir.</p>
       <form id="notifyForm" class="grid" style="margin-top:12px">
         <label>Başlıq<input id="notifyTitle" placeholder="Məs: Yeni bağça əlavə olundu" /></label>
         <label>Aktivlik
@@ -416,10 +421,19 @@
         })
       });
       if (!res.ok) { notifyStatus("Bildiriş göndərilmədi. Şifrəni yoxla."); return; }
+      const result = await res.json();
       $("notifyTitle").value = "";
       $("notifyMessage").value = "";
       $("notifyActive").value = "true";
-      notifyStatus("Bildiriş göndərildi. APK istifadəçiləri tətbiqə girəndə görəcək.");
+      if (result.push && result.push.sent > 0) {
+        notifyStatus(`Bildiriş göndərildi: ${result.push.sent} telefona çatdırılmağa verildi.`);
+      } else if (result.push && result.push.reason === "no devices") {
+        notifyStatus("Bildiriş saxlandı, amma hələ push qeydiyyatlı telefon yoxdur. APK açılıb icazə veriləndən sonra cihaz qeydiyyata düşəcək.");
+      } else if (result.push && result.push.configured === false) {
+        notifyStatus("Bildiriş saxlandı, amma push bağlantısı hələ aktiv deyil.");
+      } else {
+        notifyStatus("Bildiriş saxlandı.");
+      }
       await loadNotifications();
     }
     async function toggleNotification(id, active){
@@ -462,8 +476,23 @@
       $("appUsers").textContent = data.appUsers || 0;
       $("appOpens").textContent = data.appOpens || 0;
       $("totalViews").textContent = data.totalViews || 0;
+      $("pushDevices").textContent = data.pushDevices || 0;
+      const devices = data.devices || [];
+      const locationDevices = devices.filter(item => item.lat && item.lng);
+      $("locationDevices").textContent = locationDevices.length;
       const top = (data.views || [])[0];
       $("topViewed").textContent = top ? `${top.name}: ${top.views}` : "-";
+      $("devicesList").innerHTML = devices.map(item => {
+        const hasLocation = item.lat && item.lng && item.mapUrl;
+        return `
+          <div class="item">
+            <div><strong>Telefon #${item.shortId || ""}</strong> ${hasLocation ? '<span class="badge">Lokasiya var</span>' : '<span class="badge">Lokasiya yoxdur</span>'}</div>
+            <div class="meta">${item.opens || 0} açılış${item.lastOpenAt ? ` · Son açılış: ${item.lastOpenAt}` : ""}${item.firstOpenAt ? ` · İlk açılış: ${item.firstOpenAt}` : ""}</div>
+            ${hasLocation ? `<div class="meta">Koordinat: ${Number(item.lat).toFixed(6)}, ${Number(item.lng).toFixed(6)}${item.accuracy ? ` · Dəqiqlik: təxminən ${item.accuracy} m` : ""}${item.locationAt ? ` · Lokasiya vaxtı: ${item.locationAt}` : ""}</div>
+            <div class="row"><a href="${item.mapUrl}" target="_blank"><button class="secondary" type="button">Xəritədə aç</button></a></div>` : '<div class="meta">Bu telefon hələ lokasiya icazəsi verməyib.</div>'}
+          </div>
+        `;
+      }).join("") || "<p>Hələ telefon açılışı yoxdur.</p>";
       $("viewsList").innerHTML = (data.views || []).map(item => `
         <div class="item">
           <div><strong>${item.name}</strong></div>
